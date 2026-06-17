@@ -1,0 +1,9 @@
+services:
+  domytasks:
+    build: .
+    ports:
+      - "3603:3603"
+    env_file: .env
+    volumes:
+      - ./data:/data
+    restart: unless-stopped
