@@ -1,5 +1,12 @@
 export type TaskStatus = "todo" | "doing" | "done";
 
+export interface AuthSession {
+  authenticated: boolean;
+  method: "bearer" | "session" | "authelia" | null;
+  user: string | null;
+  authelia_enabled: boolean;
+}
+
 export interface Workstream {
   id: string;
   name: string;

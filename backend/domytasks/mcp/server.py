@@ -6,14 +6,19 @@ from fastmcp import FastMCP
 from sqlmodel import Session
 
 from domytasks.db import get_engine
+from domytasks.mcp.agent_guide import (
+    AGENT_GUIDE_RESOURCE,
+    SERVER_INSTRUCTIONS,
+    add_task_from_chat_prompt,
+    pick_up_task_prompt,
+    task_triage_prompt,
+)
 from domytasks.models import TaskStatus
-from domytasks.schemas import ViewPrefsUpdate
-from domytasks.service import settings as settings_service
 from domytasks.service import tasks as tasks_service
 from domytasks.service import views as views_service
 from domytasks.service import workstreams as workstreams_service
 
-mcp = FastMCP("DoMyTasks")
+mcp = FastMCP("DoMyTasks", instructions=SERVER_INSTRUCTIONS)
 
 
 def _session() -> Session:
@@ -28,6 +33,30 @@ def _json(data) -> str:
     return json.dumps(data, indent=2, default=str)
 
 
+@mcp.resource("domytasks://agent-guide")
+def agent_guide() -> str:
+    """Authoritative DoMyTasks agent conventions and workflow."""
+    return AGENT_GUIDE_RESOURCE
+
+
+@mcp.prompt
+def task_triage() -> str:
+    """Triage open tasks by priority and due date."""
+    return task_triage_prompt()
+
+
+@mcp.prompt
+def add_task_from_chat(workstream_hint: str = "") -> str:
+    """Capture a task from the current conversation."""
+    return add_task_from_chat_prompt(workstream_hint)
+
+
+@mcp.prompt
+def pick_up_task(task_hint: str = "") -> str:
+    """Claim and start work on a task."""
+    return pick_up_task_prompt(task_hint)
+
+
 @mcp.tool(description="List all workstreams.")
 def workstream_list() -> str:
     """Return all workstreams."""
@@ -36,7 +65,9 @@ def workstream_list() -> str:
         return _json(streams)
 
 
-@mcp.tool(description="Create a new workstream. Example: name='Engineering', color='#3b82f6'")
+@mcp.tool(
+    description="Create a new workstream. Example: name='Engineering', color='#3b82f6'"
+)
 def workstream_create(name: str, color: Optional[str] = None) -> str:
     """Create a workstream with optional color."""
     with _session() as session:
@@ -45,7 +76,10 @@ def workstream_create(name: str, color: Optional[str] = None) -> str:
 
 
 @mcp.tool(
-    description="List tasks with optional filters. sort_by: priority|due_at|updated_at|manual"
+    description=(
+        "List the user's DoMyTasks backlog. Use when they ask about tasks, todos, "
+        "priorities, or what's open. sort_by: priority|due_at|updated_at|manual"
+    )
 )
 def task_list(
     workstream_id: Optional[str] = None,
@@ -68,7 +102,9 @@ def task_list(
         return _json(tasks)
 
 
-@mcp.tool(description="Get a single task by id with full context.")
+@mcp.tool(
+    description="Read full task context before acting on a specific item."
+)
 def task_get(task_id: str) -> str:
     """Read full task detail."""
     with _session() as session:
@@ -77,7 +113,10 @@ def task_get(task_id: str) -> str:
 
 
 @mcp.tool(
-    description="Create a task. Requires workstream_id, title, and context (agent pickup packet)."
+    description=(
+        "Add a task to DoMyTasks. Use when the user wants to capture, track, or "
+        "delegate work. Requires workstream_id, title, and context (agent pickup packet)."
+    )
 )
 def task_create(
     workstream_id: str,
@@ -182,7 +221,11 @@ def task_claim(
         return _json(task)
 
 
-@mcp.tool(description="Dashboard view grouped by day, workstream, or flat.")
+@mcp.tool(
+    description=(
+        "Grouped dashboard of the user's tasks. Use for due-date or workstream overviews."
+    )
+)
 def task_dashboard(
     group_by: str = "day",
     sort_by: str = "priority",
@@ -202,7 +245,12 @@ def task_dashboard(
         return _json(result)
 
 
-@mcp.tool(description="Kanban board with columns todo, doing, done.")
+@mcp.tool(
+    description=(
+        "Board view of the user's tasks. Prefer for 'what am I working on?' or "
+        "standup-style questions."
+    )
+)
 def task_kanban(
     sort_by: str = "priority",
     sort_dir: str = "desc",

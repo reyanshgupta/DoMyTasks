@@ -23,6 +23,97 @@ import type { KanbanResponse, TaskCard as TaskCardType, TaskStatus } from "@/lib
 
 const STATUSES = new Set(["todo", "doing", "done"]);
 
+const COLUMN_META: Record<TaskStatus, { label: string; dot: string }> = {
+  todo: {
+    label: "To do",
+    dot: "bg-[var(--text-muted)]",
+  },
+  doing: {
+    label: "In progress",
+    dot: "bg-[var(--doing)]",
+  },
+  done: {
+    label: "Done",
+    dot: "bg-[var(--accent)]",
+  },
+};
+
+function DragHandle({
+  listeners,
+}: {
+  listeners: ReturnType<typeof useSortable>["listeners"] | ReturnType<typeof useDraggable>["listeners"];
+}) {
+  return (
+    <button
+      type="button"
+      className="mt-[-1px] grid h-6 w-4 shrink-0 cursor-grab place-items-center rounded-[6px] text-[var(--text-muted)] opacity-0 transition-all group-hover:opacity-100 hover:bg-[var(--surface-muted)] hover:text-[var(--text-secondary)] active:cursor-grabbing"
+      aria-label="Drag to reorder"
+      {...listeners}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+        <circle cx="4" cy="2" r="1.2" />
+        <circle cx="8" cy="2" r="1.2" />
+        <circle cx="4" cy="6" r="1.2" />
+        <circle cx="8" cy="6" r="1.2" />
+        <circle cx="4" cy="10" r="1.2" />
+        <circle cx="8" cy="10" r="1.2" />
+      </svg>
+    </button>
+  );
+}
+
+function SortableKanbanTask({
+  task,
+  onClick,
+}: {
+  task: TaskCardType;
+  onClick: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: task.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes}>
+      <TaskCard
+        task={task}
+        onClick={onClick}
+        dragHandle={<DragHandle listeners={listeners} />}
+      />
+    </div>
+  );
+}
+
+function DraggableKanbanTask({
+  task,
+  onClick,
+}: {
+  task: TaskCardType;
+  onClick: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } =
+    useDraggable({ id: task.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    opacity: isDragging ? 0.4 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes}>
+      <TaskCard
+        task={task}
+        onClick={onClick}
+        dragHandle={<DragHandle listeners={listeners} />}
+      />
+    </div>
+  );
+}
+
 function KanbanTask({
   task,
   onClick,
@@ -32,37 +123,11 @@ function KanbanTask({
   onClick: () => void;
   manualSort: boolean;
 }) {
-  const sortable = useSortable({ id: task.id, disabled: !manualSort });
-  const draggable = useDraggable({ id: task.id, disabled: manualSort });
+  if (manualSort) {
+    return <SortableKanbanTask task={task} onClick={onClick} />;
+  }
 
-  const active = manualSort ? sortable : draggable;
-  const style = {
-    transform: CSS.Transform.toString(active.transform),
-    transition: "transition" in active ? active.transition : undefined,
-    opacity: active.isDragging ? 0.5 : 1,
-  };
-
-  const dragListeners = manualSort ? sortable.listeners : draggable.listeners;
-  const dragAttributes = manualSort ? sortable.attributes : draggable.attributes;
-
-  return (
-    <div ref={active.setNodeRef} style={style} {...dragAttributes}>
-      <TaskCard
-        task={task}
-        onClick={onClick}
-        dragHandle={
-          <button
-            type="button"
-            className="cursor-grab text-slate-500 hover:text-slate-300"
-            {...dragListeners}
-            onClick={(e) => e.stopPropagation()}
-          >
-            ⠿
-          </button>
-        }
-      />
-    </div>
-  );
+  return <DraggableKanbanTask task={task} onClick={onClick} />;
 }
 
 function DroppableColumn({
@@ -77,29 +142,42 @@ function DroppableColumn({
   manualSort: boolean;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
+  const meta = COLUMN_META[status];
 
   const content = (
-    <div className="flex min-h-[120px] flex-col gap-2 p-3">
-      {tasks.map((task) => (
-        <KanbanTask
-          key={task.id}
-          task={task}
-          onClick={() => onTaskClick(task.id)}
-          manualSort={manualSort}
-        />
-      ))}
+    <div className="flex min-h-[360px] flex-col gap-2.5 p-2.5">
+      {tasks.length === 0 ? (
+        <div className="grid min-h-[120px] place-items-center rounded-[12px] border border-dashed border-[var(--border)] bg-[var(--surface)]">
+          <p className="text-[13px] font-medium text-[var(--text-muted)]">No tasks</p>
+        </div>
+      ) : (
+        tasks.map((task) => (
+          <KanbanTask
+            key={task.id}
+            task={task}
+            onClick={() => onTaskClick(task.id)}
+            manualSort={manualSort}
+          />
+        ))
+      )}
     </div>
   );
 
   return (
     <div
       ref={setNodeRef}
-      className={`flex min-w-[260px] flex-1 flex-col rounded-xl border bg-slate-900/50 ${
-        isOver ? "border-blue-500" : "border-slate-800"
+      className={`flex min-w-[270px] flex-1 flex-col overflow-hidden rounded-[16px] border transition-colors duration-200 ${
+        isOver
+          ? "border-[var(--accent)] bg-[var(--accent-soft)]"
+          : "border-[var(--border)] bg-[var(--surface-muted)]"
       }`}
     >
-      <div className="border-b border-slate-800 px-4 py-3 text-sm font-medium uppercase tracking-wide text-slate-400">
-        {status} ({tasks.length})
+      <div className="flex items-center gap-2.5 border-b border-[var(--border)] px-4 py-3">
+        <span className={`h-2.5 w-2.5 rounded-full ${meta.dot}`} />
+        <span className="text-[13px] font-semibold text-[var(--text)]">{meta.label}</span>
+        <span className="ml-auto text-[12px] font-semibold tabular-nums text-[var(--text-muted)]">
+          {tasks.length}
+        </span>
       </div>
       {manualSort ? (
         <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
@@ -171,19 +249,27 @@ export function KanbanBoard({
 
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="flex gap-4 overflow-x-auto pb-4">
-        {board.columns.map((col) => (
-          <DroppableColumn
+      <div className="flex gap-3 overflow-x-auto pb-6">
+        {board.columns.map((col, i) => (
+          <div
             key={col.status}
-            status={col.status}
-            tasks={col.tasks}
-            onTaskClick={onTaskClick}
-            manualSort={manualSort}
-          />
+            className={`animate-fade-up stagger-${i + 1} flex min-w-[270px] flex-1`}
+          >
+            <DroppableColumn
+              status={col.status}
+              tasks={col.tasks}
+              onTaskClick={onTaskClick}
+              manualSort={manualSort}
+            />
+          </div>
         ))}
       </div>
-      <DragOverlay>
-        {activeTask ? <TaskCard task={activeTask} /> : null}
+      <DragOverlay dropAnimation={{ duration: 200, easing: "ease" }}>
+        {activeTask ? (
+          <div className="rotate-1 scale-[1.02] opacity-95">
+            <TaskCard task={activeTask} />
+          </div>
+        ) : null}
       </DragOverlay>
     </DndContext>
   );

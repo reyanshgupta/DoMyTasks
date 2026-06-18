@@ -32,3 +32,11 @@ def test_mcp_endpoint_accepts_auth(mcp_client):
     )
     # MCP may return 405 for GET or handle differently; not 401
     assert r.status_code != 401
+
+
+def test_mcp_endpoint_rejects_web_session_cookie(mcp_client):
+    r = mcp_client.post("/api/auth/login", json={"token": "test-token"})
+    assert r.status_code == 200
+
+    r = mcp_client.post("/mcp")
+    assert r.status_code == 401

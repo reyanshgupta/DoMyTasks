@@ -83,8 +83,10 @@ def test_kanban_hide_done(session, workstream):
 
 def test_view_prefs_defaults_and_update(session):
     prefs = get_view_prefs(session)
-    assert prefs.view == "kanban"
-    assert prefs.sort_by == "priority"
+    assert prefs.view == "dashboard"
+    assert prefs.group_by == "flat"
+    assert prefs.sort_by == "due_at"
+    assert prefs.sort_dir == "asc"
 
     updated = set_view_prefs(session, ViewPrefsUpdate(view="dashboard", group_by="flat"))
     assert updated.view == "dashboard"

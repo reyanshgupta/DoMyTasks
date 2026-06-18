@@ -1,9 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { setToken } from "@/lib/auth";
+import { api } from "@/lib/api";
+import { clearToken } from "@/lib/auth";
+import { LogoMark } from "@/components/LogoMark";
 
-export function TokenGate({ onAuthenticated }: { onAuthenticated: () => void }) {
+export function TokenGate({
+  autheliaEnabled = false,
+  onAuthenticated,
+}: {
+  autheliaEnabled?: boolean;
+  onAuthenticated: () => void;
+}) {
   const [token, setTokenValue] = useState("");
   const [error, setError] = useState("");
 
@@ -13,42 +21,58 @@ export function TokenGate({ onAuthenticated }: { onAuthenticated: () => void }) 
       setError("Token is required");
       return;
     }
-    setToken(token.trim());
     try {
-      const res = await fetch("/api/settings/view", {
-        headers: { Authorization: `Bearer ${token.trim()}` },
-      });
-      if (!res.ok) throw new Error("Invalid token");
+      await api.login(token.trim());
+      clearToken();
       onAuthenticated();
     } catch {
+      clearToken();
       setError("Invalid token");
     }
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-950 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-[var(--bg)] p-4">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-md rounded-xl border border-slate-800 bg-slate-900 p-8 shadow-xl"
+        className="animate-scale-in w-full max-w-md overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-lg)]"
       >
-        <h1 className="mb-2 text-2xl font-semibold text-white">DoMyTasks</h1>
-        <p className="mb-6 text-sm text-slate-400">
-          Enter your bearer token to connect.
-        </p>
-        <input
-          type="password"
-          value={token}
-          onChange={(e) => setTokenValue(e.target.value)}
-          placeholder="Bearer token"
-          className="mb-4 w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-white outline-none focus:border-blue-500"
-        />
-        {error && <p className="mb-4 text-sm text-red-400">{error}</p>}
-        <button
-          type="submit"
-          className="w-full rounded-lg bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-500"
-        >
-          Connect
-        </button>
+        <div className="border-b border-[var(--border)] bg-[var(--surface-muted)] px-7 py-6">
+          <LogoMark alt="DoMyTasks logo" className="mb-4 h-12 w-12" />
+          <h1 className="text-[22px] font-bold leading-tight text-[var(--text)]">
+            DoMyTasks
+          </h1>
+          <p className="mt-1 text-[13px] font-medium text-[var(--text-muted)]">
+            {autheliaEnabled
+              ? "Use your Authelia URL when available, or enter a token for direct access."
+              : "Enter your token once. A session cookie keeps you signed in."}
+          </p>
+        </div>
+
+        <div className="px-7 py-6">
+          <label className="mb-4 block text-[13px] font-semibold text-[var(--text-secondary)]">
+            Bearer token
+            <input
+              type="password"
+              value={token}
+              onChange={(e) => setTokenValue(e.target.value)}
+              placeholder="Token"
+              autoFocus
+              className="mt-1.5 w-full rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-2.5 text-[var(--text)] outline-none transition-colors placeholder:text-[var(--text-muted)] focus:border-[var(--accent)]"
+            />
+          </label>
+          {error && (
+            <p className="mb-4 rounded-[var(--radius)] border border-[rgba(180,35,24,0.22)] bg-[var(--danger-soft)] px-3 py-2 text-[13px] font-medium text-[var(--danger)]">
+              {error}
+            </p>
+          )}
+          <button
+            type="submit"
+            className="h-10 w-full rounded-[var(--radius)] bg-[var(--accent)] px-4 text-[14px] font-semibold text-white shadow-[var(--shadow-sm)] transition-colors hover:bg-[var(--accent-hover)]"
+          >
+            Connect
+          </button>
+        </div>
       </form>
     </div>
   );

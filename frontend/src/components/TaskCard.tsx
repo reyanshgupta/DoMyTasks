@@ -1,15 +1,23 @@
 import type { TaskCard as TaskCardType } from "@/lib/types";
 
-function formatDue(due: string | null): string {
-  if (!due) return "no date";
+function formatDue(due: string | null): { label: string; urgent: boolean } {
+  if (!due) return { label: "", urgent: false };
   const d = new Date(due);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const dueDay = new Date(d);
   dueDay.setHours(0, 0, 0, 0);
-  if (dueDay.getTime() === today.getTime()) return "today";
-  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  const diff = (dueDay.getTime() - today.getTime()) / 86400000;
+  if (diff < 0) return { label: "Overdue", urgent: true };
+  if (diff === 0) return { label: "Today", urgent: true };
+  if (diff === 1) return { label: "Tomorrow", urgent: false };
+  return {
+    label: d.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+    urgent: false,
+  };
 }
+
+const PRIORITY_LABELS = ["", "Low", "Medium", "High"];
 
 export function TaskCard({
   task,
@@ -20,36 +28,68 @@ export function TaskCard({
   onClick?: () => void;
   dragHandle?: React.ReactNode;
 }) {
-  const color = task.workstream.color || "#64748b";
+  const color = task.workstream.color || "#8e8e93";
+  const due = formatDue(task.due_at);
+  const priority = PRIORITY_LABELS[task.priority] || "";
 
   return (
     <div
       onClick={onClick}
-      className="cursor-pointer rounded-lg border border-slate-700 bg-slate-800/80 p-3 shadow-sm transition hover:border-slate-600"
+      onKeyDown={(e) => {
+        if (!onClick) return;
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      className={`group rounded-[12px] border border-[var(--border)] bg-[var(--surface)] px-3.5 py-3 shadow-[var(--shadow-sm)] outline-none transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--row-hover)] focus-visible:bg-[var(--row-hover)] ${
+        onClick ? "cursor-pointer" : ""
+      } ${task.status === "done" ? "opacity-70" : ""}`}
     >
-      <div className="mb-2 flex items-start justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0">
-          {dragHandle}
-          <span
-            className="h-2.5 w-2.5 shrink-0 rounded-full"
-            style={{ backgroundColor: color }}
-            title={task.workstream.name}
-          />
-          <span className="truncate text-sm font-medium text-white">
+      <div className="flex items-start gap-2.5">
+        {dragHandle}
+        <span
+          className={`mt-0.5 h-[18px] w-[18px] shrink-0 rounded-full border ${
+            task.status === "done"
+              ? "border-[var(--accent)] bg-[var(--accent)]"
+              : "border-[var(--circle-border)]"
+          }`}
+          aria-hidden="true"
+        />
+        <div className="min-w-0 flex-1">
+          <p
+            className={`break-words text-[14px] font-medium leading-snug ${
+              task.status === "done"
+                ? "text-[var(--text-muted)] line-through"
+                : "text-[var(--text)]"
+            }`}
+          >
             {task.title}
-          </span>
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] font-medium text-[var(--text-muted)]">
+            <span className="inline-flex min-w-0 items-center gap-1.5">
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: color }} />
+              <span className="truncate">{task.workstream.name}</span>
+            </span>
+            {due.label && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span className={due.urgent ? "font-semibold text-[var(--danger)]" : ""}>
+                  {due.label}
+                </span>
+              </>
+            )}
+            {priority && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span>{priority}</span>
+              </>
+            )}
+          </div>
         </div>
-        <span className="shrink-0 rounded bg-slate-700 px-1.5 py-0.5 text-xs text-slate-300">
-          P{task.priority}
-        </span>
       </div>
-      <div className="flex items-center justify-between text-xs text-slate-400">
-        <span>{task.workstream.name}</span>
-        <span>due: {formatDue(task.due_at)}</span>
-      </div>
-      {task.claimed_by && (
-        <div className="mt-1 text-xs text-amber-400">claimed: {task.claimed_by}</div>
-      )}
     </div>
   );
 }

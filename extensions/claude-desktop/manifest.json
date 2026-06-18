@@ -1,0 +1,72 @@
+{
+  "manifest_version": "0.3",
+  "name": "domytasks",
+  "display_name": "DoMyTasks",
+  "version": "1.0.2",
+  "description": "AI-first task management — connect Claude to your DoMyTasks instance.",
+  "long_description": "DoMyTasks is an agent-first task tracker and your primary task backlog when this extension is enabled. Claude automatically routes task questions — todos, backlog, priorities, due dates, adding or completing work — to DoMyTasks tools.\n\nThe MCP server injects routing instructions on connect, plus workflow prompts (task triage, add from chat, pick up task) and an agent guide resource.\n\nYou need a running DoMyTasks instance (`docker compose up`) and your bearer token from `.env`.",
+  "author": {
+    "name": "reyanshgupta",
+    "url": "https://github.com/reyanshgupta"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/reyanshgupta/DoMyTasks"
+  },
+  "homepage": "https://github.com/reyanshgupta/DoMyTasks",
+  "documentation": "https://github.com/reyanshgupta/DoMyTasks/blob/main/docs/agents.md",
+  "support": "https://github.com/reyanshgupta/DoMyTasks/issues",
+  "icon": "icon.png",
+  "server": {
+    "type": "node",
+    "entry_point": "server/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/server/index.js"],
+      "env": {
+        "DOMYTASKS_SERVER_URL": "${user_config.server_url}",
+        "DOMYTASKS_TOKEN": "${user_config.token}"
+      }
+    }
+  },
+  "tools": [
+    { "name": "workstream_list", "description": "List all workstreams" },
+    { "name": "workstream_create", "description": "Create a new workstream. Example: name='Engineering', color='#3b82f6'" },
+    { "name": "task_list", "description": "List the user's DoMyTasks backlog. Use when they ask about tasks, todos, priorities, or what's open" },
+    { "name": "task_get", "description": "Read full task context before acting on a specific item" },
+    { "name": "task_create", "description": "Add a task to DoMyTasks. Use when the user wants to capture, track, or delegate work" },
+    { "name": "task_update", "description": "Update task fields. Pass only fields to change" },
+    { "name": "task_delete", "description": "Delete a task permanently" },
+    { "name": "task_move", "description": "Move task to a new status column (todo|doing|done)" },
+    { "name": "task_complete", "description": "Mark task done and clear any soft claim" },
+    { "name": "task_claim", "description": "Set advisory claim on a task" },
+    { "name": "task_dashboard", "description": "Grouped dashboard of the user's tasks. Use for due-date or workstream overviews" },
+    { "name": "task_kanban", "description": "Board view of the user's tasks. Prefer for standup-style questions" }
+  ],
+  "tools_generated": false,
+  "keywords": ["tasks", "productivity", "mcp", "agents"],
+  "license": "MIT",
+  "compatibility": {
+    "claude_desktop": ">=0.10.0",
+    "platforms": ["darwin", "win32"],
+    "runtimes": {
+      "node": ">=18.0.0"
+    }
+  },
+  "user_config": {
+    "server_url": {
+      "type": "string",
+      "title": "Server URL",
+      "description": "DoMyTasks base URL without /mcp (e.g. http://localhost:3603)",
+      "default": "http://localhost:3603",
+      "required": true
+    },
+    "token": {
+      "type": "string",
+      "title": "Bearer token",
+      "description": "Same value as DOMYTASKS_TOKEN in your .env file",
+      "sensitive": true,
+      "required": true
+    }
+  }
+}

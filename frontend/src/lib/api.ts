@@ -1,5 +1,6 @@
 import { getToken } from "./auth";
 import type {
+  AuthSession,
   DashboardResponse,
   KanbanResponse,
   TaskCard,
@@ -43,7 +44,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const res = await fetch(path, { ...options, headers });
+  const res = await fetch(path, { ...options, headers, credentials: "same-origin" });
   if (!res.ok) {
     const body = await res.json().catch(() => ({ detail: res.statusText }));
     throw new ApiError(res.status, body.detail || res.statusText);
@@ -53,6 +54,19 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 }
 
 export const api = {
+  getAuthSession: () => request<AuthSession>("/api/auth/session"),
+
+  login: (token: string) =>
+    request<AuthSession>("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ token }),
+    }),
+
+  logout: () =>
+    request<AuthSession>("/api/auth/logout", {
+      method: "POST",
+    }),
+
   listWorkstreams: () => request<Workstream[]>("/api/workstreams"),
 
   createWorkstream: (name: string, color?: string) =>

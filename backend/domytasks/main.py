@@ -3,10 +3,11 @@ from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastmcp.utilities.lifespan import combine_lifespans
 
+from domytasks.api.routes import auth as auth_routes
 from domytasks.api.routes import settings as settings_routes
 from domytasks.api.routes import tasks as tasks_routes
 from domytasks.api.routes import views as views_routes
@@ -52,10 +53,16 @@ def create_app() -> FastAPI:
     def health():
         return {"status": "ok"}
 
+    app.include_router(auth_routes.router, prefix="/api")
     app.include_router(workstreams_routes.router, prefix="/api")
     app.include_router(tasks_routes.router, prefix="/api")
     app.include_router(views_routes.router, prefix="/api")
     app.include_router(settings_routes.router, prefix="/api")
+
+    @app.api_route("/mcp", methods=["GET", "POST", "DELETE", "OPTIONS", "HEAD"])
+    async def mcp_trailing_slash_redirect(request: Request):
+        target = request.url.replace(path="/mcp/")
+        return RedirectResponse(url=str(target), status_code=307)
 
     app.mount("/mcp", mcp_app)
 

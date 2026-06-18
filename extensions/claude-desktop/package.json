@@ -1,0 +1,16 @@
+{
+  "name": "domytasks-claude-desktop",
+  "version": "1.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Claude Desktop extension for DoMyTasks",
+  "scripts": {
+    "pack": "npm install && node scripts/prepack.mjs && npx @anthropic-ai/mcpb validate . && npx @anthropic-ai/mcpb pack . ../../dist/domytasks.mcpb"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.3"
+  },
+  "devDependencies": {
+    "@anthropic-ai/mcpb": "^1.0.0"
+  }
+}

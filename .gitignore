@@ -1,5 +1,6 @@
 data/
 .env
+private/
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -11,3 +12,4 @@ out/
 frontend/out/
 .DS_Store
 *.db
+dist/

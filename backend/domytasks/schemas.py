@@ -6,6 +6,17 @@ from pydantic import BaseModel, Field
 from domytasks.models import TaskStatus
 
 
+class AuthLogin(BaseModel):
+    token: str
+
+
+class AuthSession(BaseModel):
+    authenticated: bool
+    method: Optional[Literal["bearer", "session", "authelia"]] = None
+    user: Optional[str] = None
+    authelia_enabled: bool = False
+
+
 class WorkstreamEmbed(BaseModel):
     id: str
     name: str
@@ -115,10 +126,10 @@ class KanbanResponse(BaseModel):
 
 
 class ViewPrefs(BaseModel):
-    view: Literal["kanban", "dashboard"] = "kanban"
-    group_by: Literal["day", "workstream", "flat"] = "day"
-    sort_by: Literal["priority", "due_at", "updated_at", "manual"] = "priority"
-    sort_dir: Literal["asc", "desc"] = "desc"
+    view: Literal["kanban", "dashboard"] = "dashboard"
+    group_by: Literal["day", "workstream", "flat"] = "flat"
+    sort_by: Literal["priority", "due_at", "updated_at", "manual"] = "due_at"
+    sort_dir: Literal["asc", "desc"] = "asc"
     workstream_ids: Optional[list[str]] = None
     hide_done: bool = False
     filters: Optional[dict[str, Any]] = None
