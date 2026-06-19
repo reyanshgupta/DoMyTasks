@@ -34,3 +34,9 @@ def create_workstream(
         color=ws.color,
         created_at=ws.created_at,
     )
+
+
+@router.delete("/{workstream_id}", status_code=200)
+def delete_workstream(workstream_id: str, session: Session = Depends(get_db)):
+    workstreams_service.delete_workstream(session, workstream_id)
+    return {"deleted": workstream_id}

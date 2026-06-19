@@ -6,7 +6,7 @@ from datetime import datetime
 from sqlmodel import Session, select
 from ulid import ULID
 
-from domytasks.models import Workstream
+from domytasks.models import Task, Workstream
 from domytasks.service.exceptions import NotFoundError
 
 logger = logging.getLogger(__name__)
@@ -35,6 +35,20 @@ def create_workstream(session: Session, name: str, color: str | None = None) -> 
 
 def list_workstreams(session: Session) -> list[Workstream]:
     return list(session.exec(select(Workstream).order_by(Workstream.name)).all())
+
+
+def delete_workstream(session: Session, workstream_id: str) -> None:
+    ws = session.get(Workstream, workstream_id)
+    if not ws:
+        raise NotFoundError("workstream", workstream_id)
+
+    _tasks = session.exec(select(Task).where(Task.workstream_id == ws.id)).all()
+    for t in _tasks:
+        session.delete(t)
+
+    session.delete(ws)
+    session.commit()
+    logger.info("workstream deleted id=%s name=%s (tasks=%d)", ws.id, ws.name, len(_tasks))
 
 
 def resolve_workstream(session: Session, id_or_name: str) -> Workstream:

@@ -75,6 +75,14 @@ def workstream_create(name: str, color: Optional[str] = None) -> str:
         return _json(ws)
 
 
+@mcp.tool(description="Delete a workstream and all its tasks. Permanent.", tags={"destructive"})
+def workstream_delete(workstream_id: str) -> str:
+    """Delete a workstream by id. Cascades to its tasks."""
+    with _session() as session:
+        workstreams_service.delete_workstream(session, workstream_id)
+        return json.dumps({"deleted": workstream_id})
+
+
 @mcp.tool(
     description=(
         "List the user's DoMyTasks backlog. Use when they ask about tasks, todos, "
