@@ -5,5 +5,5 @@ services:
       - "3603:3603"
     env_file: .env
     volumes:
-      - /home/rey/domytasks-data:/data
+      - ./data:/data
     restart: unless-stopped
