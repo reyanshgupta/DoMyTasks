@@ -106,9 +106,9 @@ function SidebarItem({
     <button
       type="button"
       onClick={onClick}
-      className={`flex h-9 w-full items-center gap-2 rounded-[10px] px-2.5 text-left text-[14px] font-medium transition-colors ${
+      className={`flex h-9 w-full items-center gap-2 rounded-[8px] px-2.5 text-left text-[14px] font-medium transition-colors ${
         active
-          ? "bg-[var(--sidebar-active)] text-[var(--text)]"
+          ? "bg-[var(--sidebar-active)] text-[var(--text)] shadow-[var(--shadow-sm)]"
           : "text-[var(--text-secondary)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--text)]"
       }`}
     >
@@ -121,7 +121,7 @@ function SidebarItem({
       </span>
       <span className="min-w-0 flex-1 truncate">{label}</span>
       {typeof count === "number" && count > 0 && (
-        <span className="rounded-full bg-[var(--surface)] px-2 py-0.5 text-[11px] font-semibold tabular-nums text-[var(--text-muted)]">
+        <span className="rounded-full bg-[rgba(118,118,128,0.13)] px-2 py-0.5 text-[11px] font-semibold tabular-nums text-[var(--text-muted)]">
           {count}
         </span>
       )}
@@ -141,7 +141,7 @@ function QuietSelect({
   label: string;
 }) {
   return (
-    <label className="inline-flex h-9 items-center gap-2 rounded-[10px] border border-[var(--border)] bg-[var(--surface)] px-3 text-[13px] shadow-[var(--shadow-sm)]">
+    <label className="inline-flex h-9 items-center gap-2 rounded-[8px] border border-[var(--border)] bg-[var(--surface-raised)] px-3 text-[13px] shadow-[var(--shadow-sm)]">
       <span className="text-[12px] font-medium text-[var(--text-muted)]">{label}</span>
       <select
         value={value}
@@ -162,7 +162,7 @@ function SearchField({
   onChange: (value: string) => void;
 }) {
   return (
-    <label className="flex h-9 min-w-[220px] flex-1 items-center gap-2 rounded-[10px] border border-transparent bg-[var(--surface-strong)] px-3 text-[var(--text-muted)] transition-colors focus-within:border-[var(--accent)] focus-within:bg-[var(--surface)]">
+    <label className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-[8px] border border-transparent bg-[var(--surface-strong)] px-3 text-[var(--text-muted)] transition-colors focus-within:border-[var(--accent)] focus-within:bg-[var(--surface)]">
       <SearchIcon />
       <input
         value={value}
@@ -391,6 +391,13 @@ export default function Home() {
         : prefs?.group_by === "day"
           ? "Scheduled"
           : "All Tasks";
+  const pageAccent =
+    selectedWorkstream?.color ||
+    (prefs?.view === "kanban"
+      ? "var(--purple)"
+      : prefs?.group_by === "day"
+        ? "var(--danger)"
+        : "var(--accent)");
 
   if (authChecking) {
     return (
@@ -410,12 +417,12 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] lg:grid lg:grid-cols-[280px_minmax(0,1fr)]">
-      <aside className="border-b border-[var(--border)] bg-[var(--sidebar)] px-4 py-4 lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r lg:px-5">
-        <div className="mb-5 flex items-center gap-3">
-          <LogoMark alt="DoMyTasks logo" className="h-10 w-10" />
+    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] lg:grid lg:grid-cols-[276px_minmax(0,1fr)]">
+      <aside className="border-b border-[var(--border)] bg-[var(--sidebar)] px-4 py-4 backdrop-blur-xl lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r lg:px-4">
+        <div className="mb-4 flex items-center gap-3 px-1">
+          <LogoMark alt="DoMyTasks logo" className="h-9 w-9" />
           <div className="min-w-0">
-            <h1 className="truncate text-[17px] font-semibold leading-tight">DoMyTasks</h1>
+            <h1 className="truncate text-[16px] font-semibold leading-tight">DoMyTasks</h1>
             <p className="text-[12px] font-medium text-[var(--text-muted)]">
               {globalStats.open} open
             </p>
@@ -436,6 +443,10 @@ export default function Home() {
           >
             <LogOutIcon />
           </button>
+        </div>
+
+        <div className="mb-4">
+          <SearchField value={search} onChange={setSearch} />
         </div>
 
         <nav className="space-y-1">
@@ -494,11 +505,14 @@ export default function Home() {
         </div>
       </aside>
 
-      <main className="min-w-0 px-4 py-5 sm:px-6 lg:px-9 lg:py-8">
-        <div className="mx-auto max-w-[980px]">
+      <main className="min-w-0 px-4 py-5 sm:px-7 lg:px-10 lg:py-8">
+        <div className="mx-auto max-w-[960px]">
           <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
-              <h2 className="truncate text-[34px] font-bold leading-tight tracking-normal text-[var(--accent)] sm:text-[42px]">
+              <h2
+                className="truncate text-[38px] font-bold leading-tight tracking-normal sm:text-[46px]"
+                style={{ color: pageAccent }}
+              >
                 {pageTitle}
               </h2>
               <p className="mt-1 text-[14px] font-medium text-[var(--text-muted)]">
@@ -509,7 +523,7 @@ export default function Home() {
               type="button"
               onClick={() => setShowForm(true)}
               disabled={workstreams.length === 0}
-              className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-[10px] bg-[var(--accent)] px-4 text-[14px] font-semibold text-white shadow-[var(--shadow-sm)] transition-colors hover:bg-[var(--accent-hover)] disabled:cursor-not-allowed disabled:opacity-45"
+              className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-[8px] px-3 text-[14px] font-semibold text-[var(--accent)] transition-colors hover:bg-[var(--accent-soft)] disabled:cursor-not-allowed disabled:opacity-45"
             >
               <PlusIcon />
               New Task
@@ -517,7 +531,6 @@ export default function Home() {
           </div>
 
           <div className="mb-5 flex flex-wrap items-center gap-2">
-            <SearchField value={search} onChange={setSearch} />
             <QuietSelect
               label="Sort"
               value={prefs?.sort_by || "due_at"}
@@ -539,10 +552,29 @@ export default function Home() {
                 <option value="workstream">Streams</option>
               </QuietSelect>
             )}
+            {prefs?.view === "kanban" && (
+              <button
+                type="button"
+                aria-pressed={prefs.hide_done}
+                onClick={() => updatePrefs({ hide_done: !prefs.hide_done })}
+                className={`inline-flex h-9 items-center gap-2 rounded-[8px] border px-3 text-[13px] font-semibold shadow-[var(--shadow-sm)] transition-colors ${
+                  prefs.hide_done
+                    ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]"
+                    : "border-[var(--border)] bg-[var(--surface-raised)] text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--text)]"
+                }`}
+              >
+                <span
+                  className={`h-2.5 w-2.5 rounded-full ${
+                    prefs.hide_done ? "bg-[var(--accent)]" : "bg-[var(--text-muted)]"
+                  }`}
+                />
+                Hide Done
+              </button>
+            )}
           </div>
 
           {error && (
-            <p className="mb-4 rounded-[10px] border border-[rgba(180,35,24,0.22)] bg-[var(--danger-soft)] px-4 py-3 text-[13px] font-medium text-[var(--danger)]">
+            <p className="mb-4 rounded-[8px] border border-[rgba(255,59,48,0.24)] bg-[var(--danger-soft)] px-4 py-3 text-[13px] font-medium text-[var(--danger)]">
               {error}
             </p>
           )}
@@ -554,7 +586,7 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => setShowWorkstreamForm(true)}
-                className="mt-5 inline-flex h-10 items-center gap-2 rounded-[10px] bg-[var(--accent)] px-4 text-[14px] font-semibold text-white shadow-[var(--shadow-sm)] transition-colors hover:bg-[var(--accent-hover)]"
+                className="mt-5 inline-flex h-10 items-center gap-2 rounded-[8px] bg-[var(--accent)] px-4 text-[14px] font-semibold text-white shadow-[var(--shadow-sm)] transition-colors hover:bg-[var(--accent-hover)]"
               >
                 <PlusIcon />
                 Create Workstream
@@ -632,7 +664,7 @@ export default function Home() {
               await refresh();
             }}
             onClick={(e) => e.stopPropagation()}
-            className="animate-scale-in w-full max-w-sm rounded-[16px] border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-lg)]"
+            className="animate-scale-in w-full max-w-sm rounded-[14px] border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-lg)]"
           >
             <h2 className="mb-5 text-[20px] font-semibold text-[var(--text)]">
               New Workstream
@@ -644,7 +676,7 @@ export default function Home() {
                 onChange={(e) => setNewWsName(e.target.value)}
                 placeholder="Personal, Work, Side project"
                 autoFocus
-                className="mt-1.5 w-full rounded-[10px] border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2.5 text-[15px] text-[var(--text)] outline-none transition-colors placeholder:text-[var(--text-muted)] focus:border-[var(--accent)]"
+                className="mt-1.5 w-full rounded-[8px] border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2.5 text-[15px] text-[var(--text)] outline-none transition-colors placeholder:text-[var(--text-muted)] focus:border-[var(--accent)]"
                 required
               />
             </label>
@@ -652,7 +684,7 @@ export default function Home() {
               <button
                 type="submit"
                 disabled={!newWsName.trim()}
-                className="inline-flex h-10 items-center gap-2 rounded-[10px] bg-[var(--accent)] px-5 text-[14px] font-semibold text-white shadow-[var(--shadow-sm)] transition-colors hover:bg-[var(--accent-hover)] disabled:cursor-not-allowed disabled:opacity-45"
+                className="inline-flex h-10 items-center gap-2 rounded-[8px] bg-[var(--accent)] px-5 text-[14px] font-semibold text-white shadow-[var(--shadow-sm)] transition-colors hover:bg-[var(--accent-hover)] disabled:cursor-not-allowed disabled:opacity-45"
               >
                 <PlusIcon />
                 Create
@@ -660,7 +692,7 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => setShowWorkstreamForm(false)}
-                className="h-10 rounded-[10px] px-4 text-[14px] font-semibold text-[var(--text-secondary)] transition-colors hover:bg-[var(--surface-muted)] hover:text-[var(--text)]"
+                className="h-10 rounded-[8px] px-4 text-[14px] font-semibold text-[var(--text-secondary)] transition-colors hover:bg-[var(--surface-muted)] hover:text-[var(--text)]"
               >
                 Cancel
               </button>

@@ -39,7 +39,7 @@ function CompleteCircle({
         e.stopPropagation();
         onClick();
       }}
-      className={`mt-0.5 grid h-[22px] w-[22px] shrink-0 place-items-center rounded-full border transition-colors ${
+      className={`mt-0.5 grid h-[21px] w-[21px] shrink-0 place-items-center rounded-full border transition-colors ${
         done
           ? "border-[var(--accent)] bg-[var(--accent)] text-white"
           : "border-[var(--circle-border)] text-transparent hover:border-[var(--accent)] hover:text-[var(--accent)]"
@@ -79,13 +79,13 @@ function TaskRow({
       }}
       role="button"
       tabIndex={0}
-      className="group flex cursor-pointer gap-3 px-1 py-3 outline-none transition-colors hover:bg-[var(--row-hover)] focus-visible:bg-[var(--row-hover)] sm:px-2"
+      className="group flex cursor-pointer gap-3 rounded-[8px] px-3 py-2.5 outline-none transition-colors hover:bg-[var(--row-hover)] focus-visible:bg-[var(--row-hover)]"
     >
       <CompleteCircle
         done={task.status === "done"}
         onClick={() => onToggleTask(task.id, task.status)}
       />
-      <div className="min-w-0 flex-1 border-b border-[var(--border-subtle)] pb-3 group-last:border-b-0 group-last:pb-0">
+      <div className="min-w-0 flex-1 border-b border-[var(--border-subtle)] pb-2.5 group-last:border-b-0 group-last:pb-0">
         <div className="flex min-w-0 items-start gap-3">
           <p
             className={`min-w-0 flex-1 break-words text-[15px] font-medium leading-snug ${
@@ -98,7 +98,7 @@ function TaskRow({
           </p>
           {priority && (
             <span
-              className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+              className={`shrink-0 rounded-[6px] px-2 py-0.5 text-[11px] font-semibold ${
                 task.priority >= 3
                   ? "bg-[var(--danger-soft)] text-[var(--danger)]"
                   : task.priority === 2
@@ -116,14 +116,10 @@ function TaskRow({
             <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: color }} />
             <span className="truncate">{task.workstream.name}</span>
           </span>
-          {due.label && (
-            <>
-              <span aria-hidden="true">·</span>
-              <span className={due.urgent ? "font-semibold text-[var(--danger)]" : ""}>
-                {due.label}
-              </span>
-            </>
-          )}
+          <span aria-hidden="true">·</span>
+          <span className={due.urgent ? "font-semibold text-[var(--danger)]" : ""}>
+            {due.label || "No date"}
+          </span>
           {status && (
             <>
               <span aria-hidden="true">·</span>
@@ -156,8 +152,8 @@ function TaskList({
   if (tasks.length === 0) return <EmptyState />;
 
   return (
-    <div className="overflow-hidden rounded-[14px] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-sm)]">
-      <div className="divide-y-0 px-3 sm:px-4">
+    <div className="overflow-hidden rounded-[8px] border border-[var(--border-subtle)] bg-[var(--surface-raised)] shadow-[var(--shadow-sm)]">
+      <div className="divide-y-0 px-1 py-1">
         {tasks.map((task) => (
           <TaskRow
             key={task.id}
@@ -215,7 +211,7 @@ export function DashboardView({
 
 function EmptyState() {
   return (
-    <div className="rounded-[14px] border border-dashed border-[var(--border-strong)] bg-[var(--surface)] px-6 py-12 text-center">
+    <div className="rounded-[8px] border border-dashed border-[var(--border-strong)] bg-[var(--surface-raised)] px-6 py-12 text-center">
       <p className="text-[15px] font-semibold text-[var(--text-secondary)]">No tasks</p>
     </div>
   );

@@ -46,8 +46,9 @@ function DragHandle({
   return (
     <button
       type="button"
-      className="mt-[-1px] grid h-6 w-4 shrink-0 cursor-grab place-items-center rounded-[6px] text-[var(--text-muted)] opacity-0 transition-all group-hover:opacity-100 hover:bg-[var(--surface-muted)] hover:text-[var(--text-secondary)] active:cursor-grabbing"
-      aria-label="Drag to reorder"
+      className="mt-[-1px] grid h-6 w-4 shrink-0 cursor-grab touch-none place-items-center rounded-[6px] text-[var(--text-muted)] opacity-60 transition-all group-hover:opacity-100 hover:bg-[var(--surface-muted)] hover:text-[var(--text-secondary)] active:cursor-grabbing"
+      aria-label="Drag task"
+      title="Drag task"
       {...listeners}
       onClick={(e) => e.stopPropagation()}
     >
@@ -147,7 +148,7 @@ function DroppableColumn({
   const content = (
     <div className="flex min-h-[360px] flex-col gap-2.5 p-2.5">
       {tasks.length === 0 ? (
-        <div className="grid min-h-[120px] place-items-center rounded-[12px] border border-dashed border-[var(--border)] bg-[var(--surface)]">
+        <div className="grid min-h-[120px] place-items-center rounded-[8px] border border-dashed border-[var(--border)] bg-[var(--surface-raised)]">
           <p className="text-[13px] font-medium text-[var(--text-muted)]">No tasks</p>
         </div>
       ) : (
@@ -166,13 +167,13 @@ function DroppableColumn({
   return (
     <div
       ref={setNodeRef}
-      className={`flex min-w-[270px] flex-1 flex-col overflow-hidden rounded-[16px] border transition-colors duration-200 ${
+      className={`flex min-w-[270px] flex-1 flex-col overflow-hidden rounded-[8px] border transition-colors duration-200 ${
         isOver
           ? "border-[var(--accent)] bg-[var(--accent-soft)]"
-          : "border-[var(--border)] bg-[var(--surface-muted)]"
+          : "border-[var(--border-subtle)] bg-[rgba(242,242,247,0.72)]"
       }`}
     >
-      <div className="flex items-center gap-2.5 border-b border-[var(--border)] px-4 py-3">
+      <div className="flex items-center gap-2.5 border-b border-[var(--border-subtle)] bg-[rgba(255,255,255,0.48)] px-4 py-3">
         <span className={`h-2.5 w-2.5 rounded-full ${meta.dot}`} />
         <span className="text-[13px] font-semibold text-[var(--text)]">{meta.label}</span>
         <span className="ml-auto text-[12px] font-semibold tabular-nums text-[var(--text-muted)]">
@@ -217,6 +218,15 @@ export function KanbanBoard({
     if (task) setActiveTask(task);
   }
 
+  function targetStatusFor(overId: string): TaskStatus | null {
+    if (STATUSES.has(overId)) return overId as TaskStatus;
+    return taskMap.get(overId)?.status || null;
+  }
+
+  function taskIdsFor(status: TaskStatus): string[] {
+    return board.columns.find((col) => col.status === status)?.tasks.map((task) => task.id) || [];
+  }
+
   async function handleDragEnd(event: DragEndEvent) {
     setActiveTask(null);
     const { active, over } = event;
@@ -227,16 +237,15 @@ export function KanbanBoard({
     if (!task) return;
 
     const overId = String(over.id);
+    const targetStatus = targetStatusFor(overId);
 
-    if (STATUSES.has(overId) && overId !== task.status) {
-      await onMove(taskId, overId as TaskStatus);
+    if (targetStatus && targetStatus !== task.status) {
+      await onMove(taskId, targetStatus);
       return;
     }
 
-    if (manualSort && overId !== taskId && !STATUSES.has(overId)) {
-      const col = board.columns.find((c) => c.status === task.status);
-      if (!col) return;
-      const ids = col.tasks.map((t) => t.id);
+    if (manualSort && targetStatus === task.status && overId !== taskId && !STATUSES.has(overId)) {
+      const ids = taskIdsFor(task.status);
       const oldIndex = ids.indexOf(taskId);
       const newIndex = ids.indexOf(overId);
       if (oldIndex === -1 || newIndex === -1) return;
@@ -248,7 +257,12 @@ export function KanbanBoard({
   }
 
   return (
-    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+    <DndContext
+      sensors={sensors}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onDragCancel={() => setActiveTask(null)}
+    >
       <div className="flex gap-3 overflow-x-auto pb-6">
         {board.columns.map((col, i) => (
           <div

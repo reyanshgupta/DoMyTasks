@@ -44,7 +44,7 @@ export function TaskCard({
       }}
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
-      className={`group rounded-[12px] border border-[var(--border)] bg-[var(--surface)] px-3.5 py-3 shadow-[var(--shadow-sm)] outline-none transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--row-hover)] focus-visible:bg-[var(--row-hover)] ${
+      className={`group rounded-[8px] border border-[var(--border-subtle)] bg-[var(--surface-raised)] px-3.5 py-3 shadow-[var(--shadow-sm)] outline-none transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--row-hover)] focus-visible:bg-[var(--row-hover)] ${
         onClick ? "cursor-pointer" : ""
       } ${task.status === "done" ? "opacity-70" : ""}`}
     >
@@ -73,18 +73,32 @@ export function TaskCard({
               <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: color }} />
               <span className="truncate">{task.workstream.name}</span>
             </span>
-            {due.label && (
-              <>
-                <span aria-hidden="true">·</span>
-                <span className={due.urgent ? "font-semibold text-[var(--danger)]" : ""}>
-                  {due.label}
-                </span>
-              </>
-            )}
+            <span aria-hidden="true">·</span>
+            <span className={due.urgent ? "font-semibold text-[var(--danger)]" : ""}>
+              {due.label || "No date"}
+            </span>
             {priority && (
               <>
                 <span aria-hidden="true">·</span>
-                <span>{priority}</span>
+                <span
+                  className={
+                    task.priority >= 3
+                      ? "font-semibold text-[var(--danger)]"
+                      : task.priority === 2
+                        ? "font-semibold text-[var(--warning)]"
+                        : ""
+                  }
+                >
+                  {priority}
+                </span>
+              </>
+            )}
+            {task.claimed_by && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span className="max-w-[150px] truncate text-[var(--doing)]">
+                  {task.claimed_by}
+                </span>
               </>
             )}
           </div>

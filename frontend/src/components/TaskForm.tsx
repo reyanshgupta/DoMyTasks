@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { TaskCreateInput, TaskDetail, TaskStatus, TaskUpdateInput, Workstream } from "@/lib/types";
 
 const inputClass =
-  "mt-1.5 w-full rounded-[10px] border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2.5 text-[15px] text-[var(--text)] outline-none transition-colors placeholder:text-[var(--text-muted)] focus:border-[var(--accent)] focus:bg-[var(--surface)]";
+  "mt-1.5 w-full rounded-[8px] border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2.5 text-[15px] text-[var(--text)] outline-none transition-colors placeholder:text-[var(--text-muted)] focus:border-[var(--accent)] focus:bg-[var(--surface)]";
 
 const labelClass = "block text-[13px] font-semibold text-[var(--text-secondary)]";
 
@@ -66,9 +66,9 @@ export function TaskForm({
       <form
         onSubmit={handleSubmit}
         onClick={(e) => e.stopPropagation()}
-        className="animate-scale-in max-h-[90vh] w-full max-w-2xl overflow-hidden rounded-[18px] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-lg)]"
+        className="animate-scale-in max-h-[90vh] w-full max-w-2xl overflow-hidden rounded-[14px] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-lg)]"
       >
-        <div className="border-b border-[var(--border)] px-6 py-5">
+        <div className="border-b border-[var(--border-subtle)] bg-[var(--surface-muted)] px-6 py-5">
           <h2 className="text-[20px] font-semibold text-[var(--text)]">
             {initial ? "Edit task" : "New task"}
           </h2>
@@ -166,24 +166,24 @@ export function TaskForm({
           </div>
 
           {error && (
-            <p className="mt-4 rounded-[10px] border border-[rgba(180,35,24,0.22)] bg-[var(--danger-soft)] px-3 py-2 text-[13px] font-medium text-[var(--danger)]">
+            <p className="mt-4 rounded-[8px] border border-[rgba(255,59,48,0.24)] bg-[var(--danger-soft)] px-3 py-2 text-[13px] font-medium text-[var(--danger)]">
               {error}
             </p>
           )}
         </div>
 
-        <div className="flex items-center gap-2 border-t border-[var(--border)] bg-[var(--surface-muted)] px-6 py-4">
+        <div className="flex items-center gap-2 border-t border-[var(--border-subtle)] bg-[var(--surface-muted)] px-6 py-4">
           <button
             type="submit"
             disabled={saving}
-            className="inline-flex h-10 items-center rounded-[10px] bg-[var(--accent)] px-5 text-[14px] font-semibold text-white shadow-[var(--shadow-sm)] transition-colors hover:bg-[var(--accent-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-10 items-center rounded-[8px] bg-[var(--accent)] px-5 text-[14px] font-semibold text-white shadow-[var(--shadow-sm)] transition-colors hover:bg-[var(--accent-hover)] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {saving ? "Saving..." : "Save"}
           </button>
           <button
             type="button"
             onClick={onCancel}
-            className="h-10 rounded-[10px] px-4 text-[14px] font-semibold text-[var(--text-secondary)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--text)]"
+            className="h-10 rounded-[8px] px-4 text-[14px] font-semibold text-[var(--text-secondary)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--text)]"
           >
             Cancel
           </button>
@@ -191,7 +191,7 @@ export function TaskForm({
             <button
               type="button"
               onClick={onDelete}
-              className="ml-auto h-10 rounded-[10px] px-4 text-[14px] font-semibold text-[var(--danger)] transition-colors hover:bg-[var(--danger-soft)]"
+              className="ml-auto h-10 rounded-[8px] px-4 text-[14px] font-semibold text-[var(--danger)] transition-colors hover:bg-[var(--danger-soft)]"
             >
               Delete
             </button>
