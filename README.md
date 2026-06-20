@@ -1,40 +1,56 @@
 # DoMyTasks
 
-Agent-first task tracker — one Docker container on port 3603. Humans and agents share the same service layer.
+A small task tracker you run yourself. Add tasks in the browser, or tell Claude to add them for you — same list either way.
 
-## Quick start
+Each task has a title and a **context** field: the notes, links, and details someone (or something) needs to actually do the work. That's the whole idea. No sprints, no teams, no workflow engine.
+
+## Run it
 
 ```bash
 cp .env.example .env
-# Edit .env and set DOMYTASKS_TOKEN
+# set DOMYTASKS_TOKEN to something secret
 
 docker compose up --build
 ```
 
-Open http://localhost:3603 and enter your bearer token once. The web dashboard
-stores a signed `HttpOnly` session cookie; MCP and scripts still use the bearer
-token.
+Open http://localhost:3603. Paste your token once to log in — after that the browser keeps a session cookie.
 
-### Web auth options
+Your tasks live in `./data/` on disk.
 
-The dashboard supports two browser-friendly auth paths:
+## What you get
 
-- **Token login:** paste `DOMYTASKS_TOKEN` once in the web UI. DoMyTasks sets a
-  signed session cookie, so refreshes do not need the token again.
-- **Authelia trusted headers:** put DoMyTasks behind an Authelia-protected
-  reverse proxy and enable:
+- **Kanban board** — drag tasks between todo, doing, and done
+- **Dashboard** — grouped by day, workstream, or flat list
+- **Workstreams** — you create these yourself (Engineering, Home, whatever)
+- **Claude** — create, update, and finish tasks by talking to an agent
+
+## Claude
+
+The easiest path is the Claude Desktop extension:
+
+```bash
+cd extensions/claude-desktop
+npm run pack
+```
+
+Install `dist/domytasks.mcpb` in Claude Desktop (Settings → Extensions). Point it at `http://localhost:3603` and paste the same token from your `.env`.
+
+For Claude on the web, Hermes, Cursor, or anything else — see [docs/agents.md](docs/agents.md).
+
+## Behind a login page (optional)
+
+If you put DoMyTasks on a VPS behind [Authelia](https://www.authelia.com/), you can skip the token paste in the browser and let Authelia handle login instead:
 
 ```env
 DOMYTASKS_AUTHELIA_ENABLED=true
 DOMYTASKS_AUTHELIA_TRUSTED_PROXIES=127.0.0.1/32
 ```
 
-Forward Authelia's `Remote-User` header to DoMyTasks only from the trusted proxy.
-Set `DOMYTASKS_WEB_SESSION_SECURE=true` when serving DoMyTasks over HTTPS.
+Set `DOMYTASKS_WEB_SESSION_SECURE=true` when you're on HTTPS. Details are in `.env.example`.
 
 ## Development
 
-### Backend
+**Backend**
 
 ```bash
 cd backend
@@ -46,7 +62,7 @@ pytest -v
 uvicorn domytasks.main:app --reload --port 3603
 ```
 
-### Frontend
+**Frontend**
 
 ```bash
 cd frontend
@@ -54,26 +70,9 @@ npm install
 npm run dev
 ```
 
-For local dev, proxy API calls or run the full stack via Docker.
+Docker is the simplest way to run everything together locally.
 
-## Architecture
+## Docs
 
-- **MCP** (`/mcp`) — agents create, query, claim, and complete tasks
-- **REST** (`/api`) — web UI and integrations
-- **SQLite** (`/data/domytasks.db`) — single source of truth
-
-See [docs/spec-v1.md](docs/spec-v1.md) for the full product spec.
-
-## Agent setup
-
-See [docs/agents.md](docs/agents.md).
-
-### Claude Desktop extension (recommended)
-
-Build and install the one-click `.mcpb` extension:
-
-```bash
-cd extensions/claude-desktop
-npm run pack
-# Install dist/domytasks.mcpb via Claude Desktop → Settings → Extensions
-```
+- [docs/agents.md](docs/agents.md) — connecting Claude and other agents
+- [docs/spec-v1.md](docs/spec-v1.md) — product spec
