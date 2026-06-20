@@ -46,7 +46,7 @@ function DragHandle({
   return (
     <button
       type="button"
-      className="mt-[-1px] grid h-6 w-4 shrink-0 cursor-grab touch-none place-items-center rounded-[6px] text-[var(--text-muted)] opacity-60 transition-all group-hover:opacity-100 hover:bg-[var(--surface-muted)] hover:text-[var(--text-secondary)] active:cursor-grabbing"
+      className="mt-[-1px] grid h-6 w-4 shrink-0 cursor-grab touch-none place-items-center rounded-[6px] text-[var(--text-muted)] opacity-60 transition-[background-color,color,opacity,transform] duration-200 group-hover:opacity-100 hover:scale-110 hover:bg-[var(--surface-muted)] hover:text-[var(--text-secondary)] active:cursor-grabbing active:scale-95"
       aria-label="Drag task"
       title="Drag task"
       {...listeners}
@@ -77,6 +77,7 @@ function SortableKanbanTask({
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.4 : 1,
+    zIndex: isDragging ? 1 : undefined,
   };
 
   return (
@@ -148,7 +149,7 @@ function DroppableColumn({
   const content = (
     <div className="flex min-h-[360px] flex-col gap-2.5 p-2.5">
       {tasks.length === 0 ? (
-        <div className="grid min-h-[120px] place-items-center rounded-[8px] border border-dashed border-[var(--border)] bg-[var(--surface-raised)]">
+        <div className="animate-scale-in grid min-h-[120px] place-items-center rounded-[8px] border border-dashed border-[var(--border)] bg-[var(--surface-raised)] transition-colors">
           <p className="text-[13px] font-medium text-[var(--text-muted)]">No tasks</p>
         </div>
       ) : (
@@ -167,13 +168,13 @@ function DroppableColumn({
   return (
     <div
       ref={setNodeRef}
-      className={`flex min-w-[270px] flex-1 flex-col overflow-hidden rounded-[8px] border transition-colors duration-200 ${
+      className={`flex min-w-[270px] flex-1 flex-col overflow-hidden rounded-[8px] border transition-[background-color,border-color,box-shadow,transform] duration-200 ease-out ${
         isOver
-          ? "border-[var(--accent)] bg-[var(--accent-soft)]"
-          : "border-[var(--border-subtle)] bg-[rgba(242,242,247,0.72)]"
+          ? "scale-[1.01] border-[var(--accent)] bg-[var(--accent-soft)] shadow-[var(--shadow-md)]"
+          : "border-[var(--border-subtle)] bg-[var(--kanban-column)]"
       }`}
     >
-      <div className="flex items-center gap-2.5 border-b border-[var(--border-subtle)] bg-[rgba(255,255,255,0.48)] px-4 py-3">
+      <div className="flex items-center gap-2.5 border-b border-[var(--border-subtle)] bg-[var(--kanban-header)] px-4 py-3 transition-colors">
         <span className={`h-2.5 w-2.5 rounded-full ${meta.dot}`} />
         <span className="text-[13px] font-semibold text-[var(--text)]">{meta.label}</span>
         <span className="ml-auto text-[12px] font-semibold tabular-nums text-[var(--text-muted)]">
@@ -263,7 +264,7 @@ export function KanbanBoard({
       onDragEnd={handleDragEnd}
       onDragCancel={() => setActiveTask(null)}
     >
-      <div className="flex gap-3 overflow-x-auto pb-6">
+      <div className="animate-fade-up stagger-2 flex gap-3 overflow-x-auto pb-6">
         {board.columns.map((col, i) => (
           <div
             key={col.status}
@@ -278,9 +279,9 @@ export function KanbanBoard({
           </div>
         ))}
       </div>
-      <DragOverlay dropAnimation={{ duration: 200, easing: "ease" }}>
+      <DragOverlay dropAnimation={{ duration: 220, easing: "cubic-bezier(0.22, 1, 0.36, 1)" }}>
         {activeTask ? (
-          <div className="rotate-1 scale-[1.02] opacity-95">
+          <div className="rotate-1 scale-[1.03] opacity-95 shadow-[var(--shadow-lg)]">
             <TaskCard task={activeTask} />
           </div>
         ) : null}

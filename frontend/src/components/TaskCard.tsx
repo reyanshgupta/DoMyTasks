@@ -44,7 +44,7 @@ export function TaskCard({
       }}
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
-      className={`group rounded-[8px] border border-[var(--border-subtle)] bg-[var(--surface-raised)] px-3.5 py-3 shadow-[var(--shadow-sm)] outline-none transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--row-hover)] focus-visible:bg-[var(--row-hover)] ${
+      className={`animate-list-in group rounded-[8px] border border-[var(--border-subtle)] bg-[var(--surface-raised)] px-3.5 py-3 shadow-[var(--shadow-sm)] outline-none transition-[background-color,border-color,box-shadow,transform,opacity] duration-200 ease-out hover:-translate-y-0.5 hover:border-[var(--border-strong)] hover:bg-[var(--row-hover)] hover:shadow-[var(--shadow-md)] focus-visible:bg-[var(--row-hover)] active:scale-[0.995] ${
         onClick ? "cursor-pointer" : ""
       } ${task.status === "done" ? "opacity-70" : ""}`}
     >
@@ -53,8 +53,8 @@ export function TaskCard({
         <span
           className={`mt-0.5 h-[18px] w-[18px] shrink-0 rounded-full border ${
             task.status === "done"
-              ? "border-[var(--accent)] bg-[var(--accent)]"
-              : "border-[var(--circle-border)]"
+              ? "border-[var(--accent)] bg-[var(--accent)] shadow-[var(--shadow-sm)]"
+              : "border-[var(--circle-border)] transition-colors group-hover:border-[var(--accent)]"
           }`}
           aria-hidden="true"
         />

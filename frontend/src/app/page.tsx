@@ -18,6 +18,7 @@ import { DashboardView } from "@/components/DashboardView";
 import { KanbanBoard } from "@/components/KanbanBoard";
 import { LogoMark } from "@/components/LogoMark";
 import { TaskForm } from "@/components/TaskForm";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { TokenGate } from "@/components/TokenGate";
 
 function SearchIcon() {
@@ -106,7 +107,7 @@ function SidebarItem({
     <button
       type="button"
       onClick={onClick}
-      className={`flex h-9 w-full items-center gap-2 rounded-[8px] px-2.5 text-left text-[14px] font-medium transition-colors ${
+      className={`flex h-9 w-full items-center gap-2 rounded-[8px] px-2.5 text-left text-[14px] font-medium transition-[background-color,color,box-shadow,transform] duration-200 ease-out hover:translate-x-0.5 active:scale-[0.99] ${
         active
           ? "bg-[var(--sidebar-active)] text-[var(--text)] shadow-[var(--shadow-sm)]"
           : "text-[var(--text-secondary)] hover:bg-[var(--sidebar-hover)] hover:text-[var(--text)]"
@@ -121,7 +122,7 @@ function SidebarItem({
       </span>
       <span className="min-w-0 flex-1 truncate">{label}</span>
       {typeof count === "number" && count > 0 && (
-        <span className="rounded-full bg-[rgba(118,118,128,0.13)] px-2 py-0.5 text-[11px] font-semibold tabular-nums text-[var(--text-muted)]">
+        <span className="rounded-full bg-[var(--badge)] px-2 py-0.5 text-[11px] font-semibold tabular-nums text-[var(--text-muted)] transition-colors">
           {count}
         </span>
       )}
@@ -141,7 +142,7 @@ function QuietSelect({
   label: string;
 }) {
   return (
-    <label className="inline-flex h-9 items-center gap-2 rounded-[8px] border border-[var(--border)] bg-[var(--surface-raised)] px-3 text-[13px] shadow-[var(--shadow-sm)]">
+    <label className="inline-flex h-9 items-center gap-2 rounded-[8px] border border-[var(--border)] bg-[var(--surface-raised)] px-3 text-[13px] shadow-[var(--shadow-sm)] transition-[background-color,border-color,box-shadow,transform] duration-200 ease-out hover:-translate-y-px hover:border-[var(--border-strong)]">
       <span className="text-[12px] font-medium text-[var(--text-muted)]">{label}</span>
       <select
         value={value}
@@ -162,7 +163,7 @@ function SearchField({
   onChange: (value: string) => void;
 }) {
   return (
-    <label className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-[8px] border border-transparent bg-[var(--surface-strong)] px-3 text-[var(--text-muted)] transition-colors focus-within:border-[var(--accent)] focus-within:bg-[var(--surface)]">
+    <label className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded-[8px] border border-transparent bg-[var(--surface-strong)] px-3 text-[var(--text-muted)] transition-[background-color,border-color,box-shadow] duration-200 focus-within:border-[var(--accent)] focus-within:bg-[var(--surface)] focus-within:shadow-[var(--shadow-sm)]">
       <SearchIcon />
       <input
         value={value}
@@ -417,8 +418,8 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] lg:grid lg:grid-cols-[276px_minmax(0,1fr)]">
-      <aside className="border-b border-[var(--border)] bg-[var(--sidebar)] px-4 py-4 backdrop-blur-xl lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r lg:px-4">
+    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] transition-colors duration-300 lg:grid lg:grid-cols-[276px_minmax(0,1fr)]">
+      <aside className="animate-sidebar-in border-b border-[var(--border)] bg-[var(--sidebar)] px-4 py-4 backdrop-blur-xl transition-colors duration-300 lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r lg:px-4">
         <div className="mb-4 flex items-center gap-3 px-1">
           <LogoMark alt="DoMyTasks logo" className="h-9 w-9" />
           <div className="min-w-0">
@@ -437,12 +438,16 @@ export default function Home() {
                 setAuthed(false);
               }
             }}
-            className="ml-auto grid h-8 w-8 place-items-center rounded-[9px] text-[var(--text-muted)] transition-colors hover:bg-[var(--sidebar-hover)] hover:text-[var(--text-secondary)]"
+            className="ml-auto grid h-8 w-8 place-items-center rounded-[9px] text-[var(--text-muted)] transition-[background-color,color,transform] duration-200 hover:bg-[var(--sidebar-hover)] hover:text-[var(--text-secondary)] hover:-translate-y-px active:translate-y-0 active:scale-95"
             aria-label="Sign out"
             title="Sign out"
           >
             <LogOutIcon />
           </button>
+        </div>
+
+        <div className="mb-4 px-1">
+          <ThemeToggle className="w-full" />
         </div>
 
         <div className="mb-4">
@@ -480,7 +485,7 @@ export default function Home() {
             <button
               type="button"
               onClick={() => setShowWorkstreamForm(true)}
-              className="grid h-7 w-7 place-items-center rounded-[8px] text-[var(--accent)] transition-colors hover:bg-[var(--accent-soft)]"
+              className="grid h-7 w-7 place-items-center rounded-[8px] text-[var(--accent)] transition-[background-color,transform] duration-200 hover:-translate-y-px hover:bg-[var(--accent-soft)] active:translate-y-0 active:scale-95"
               aria-label="New workstream"
               title="New workstream"
             >
@@ -507,7 +512,7 @@ export default function Home() {
 
       <main className="min-w-0 px-4 py-5 sm:px-7 lg:px-10 lg:py-8">
         <div className="mx-auto max-w-[960px]">
-          <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="animate-fade-up mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
               <h2
                 className="truncate text-[38px] font-bold leading-tight tracking-normal sm:text-[46px]"
@@ -523,14 +528,14 @@ export default function Home() {
               type="button"
               onClick={() => setShowForm(true)}
               disabled={workstreams.length === 0}
-              className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-[8px] px-3 text-[14px] font-semibold text-[var(--accent)] transition-colors hover:bg-[var(--accent-soft)] disabled:cursor-not-allowed disabled:opacity-45"
+              className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-[8px] px-3 text-[14px] font-semibold text-[var(--accent)] transition-[background-color,transform] duration-200 hover:-translate-y-px hover:bg-[var(--accent-soft)] active:translate-y-0 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0"
             >
               <PlusIcon />
               New Task
             </button>
           </div>
 
-          <div className="mb-5 flex flex-wrap items-center gap-2">
+          <div className="animate-fade-up stagger-1 mb-5 flex flex-wrap items-center gap-2">
             <QuietSelect
               label="Sort"
               value={prefs?.sort_by || "due_at"}
@@ -557,7 +562,7 @@ export default function Home() {
                 type="button"
                 aria-pressed={prefs.hide_done}
                 onClick={() => updatePrefs({ hide_done: !prefs.hide_done })}
-                className={`inline-flex h-9 items-center gap-2 rounded-[8px] border px-3 text-[13px] font-semibold shadow-[var(--shadow-sm)] transition-colors ${
+                className={`inline-flex h-9 items-center gap-2 rounded-[8px] border px-3 text-[13px] font-semibold shadow-[var(--shadow-sm)] transition-[background-color,border-color,color,transform] duration-200 hover:-translate-y-px active:translate-y-0 active:scale-[0.98] ${
                   prefs.hide_done
                     ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]"
                     : "border-[var(--border)] bg-[var(--surface-raised)] text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--text)]"
@@ -574,19 +579,19 @@ export default function Home() {
           </div>
 
           {error && (
-            <p className="mb-4 rounded-[8px] border border-[rgba(255,59,48,0.24)] bg-[var(--danger-soft)] px-4 py-3 text-[13px] font-medium text-[var(--danger)]">
+            <p className="animate-scale-in mb-4 rounded-[8px] border border-[rgba(255,59,48,0.24)] bg-[var(--danger-soft)] px-4 py-3 text-[13px] font-medium text-[var(--danger)]">
               {error}
             </p>
           )}
 
           {workstreams.length === 0 && (
-            <div className="mt-12 max-w-md">
+            <div className="animate-fade-up stagger-2 mt-12 max-w-md">
               <LogoMark alt="DoMyTasks logo" className="mb-4 h-14 w-14" />
               <p className="text-[18px] font-semibold text-[var(--text)]">No workstreams yet</p>
               <button
                 type="button"
                 onClick={() => setShowWorkstreamForm(true)}
-                className="mt-5 inline-flex h-10 items-center gap-2 rounded-[8px] bg-[var(--accent)] px-4 text-[14px] font-semibold text-white shadow-[var(--shadow-sm)] transition-colors hover:bg-[var(--accent-hover)]"
+                className="mt-5 inline-flex h-10 items-center gap-2 rounded-[8px] bg-[var(--accent)] px-4 text-[14px] font-semibold text-white shadow-[var(--shadow-sm)] transition-[background-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:bg-[var(--accent-hover)] hover:shadow-[var(--shadow-md)] active:translate-y-0 active:scale-[0.98]"
               >
                 <PlusIcon />
                 Create Workstream
@@ -652,7 +657,7 @@ export default function Home() {
 
       {showWorkstreamForm && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-[rgba(29,29,31,0.28)] p-4 backdrop-blur-sm sm:items-center"
+          className="animate-overlay-in fixed inset-0 z-50 flex items-end justify-center bg-[var(--overlay)] p-4 backdrop-blur-sm sm:items-center"
           onClick={() => setShowWorkstreamForm(false)}
         >
           <form
@@ -664,7 +669,7 @@ export default function Home() {
               await refresh();
             }}
             onClick={(e) => e.stopPropagation()}
-            className="animate-scale-in w-full max-w-sm rounded-[14px] border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-lg)]"
+            className="animate-dialog-in w-full max-w-sm rounded-[14px] border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-lg)]"
           >
             <h2 className="mb-5 text-[20px] font-semibold text-[var(--text)]">
               New Workstream
@@ -676,7 +681,7 @@ export default function Home() {
                 onChange={(e) => setNewWsName(e.target.value)}
                 placeholder="Personal, Work, Side project"
                 autoFocus
-                className="mt-1.5 w-full rounded-[8px] border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2.5 text-[15px] text-[var(--text)] outline-none transition-colors placeholder:text-[var(--text-muted)] focus:border-[var(--accent)]"
+                className="mt-1.5 w-full rounded-[8px] border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-2.5 text-[15px] text-[var(--text)] outline-none transition-[background-color,border-color,box-shadow] duration-200 placeholder:text-[var(--text-muted)] focus:border-[var(--accent)] focus:bg-[var(--surface)]"
                 required
               />
             </label>
@@ -684,7 +689,7 @@ export default function Home() {
               <button
                 type="submit"
                 disabled={!newWsName.trim()}
-                className="inline-flex h-10 items-center gap-2 rounded-[8px] bg-[var(--accent)] px-5 text-[14px] font-semibold text-white shadow-[var(--shadow-sm)] transition-colors hover:bg-[var(--accent-hover)] disabled:cursor-not-allowed disabled:opacity-45"
+                className="inline-flex h-10 items-center gap-2 rounded-[8px] bg-[var(--accent)] px-5 text-[14px] font-semibold text-white shadow-[var(--shadow-sm)] transition-[background-color,box-shadow,transform] duration-200 hover:-translate-y-px hover:bg-[var(--accent-hover)] hover:shadow-[var(--shadow-md)] active:translate-y-0 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0"
               >
                 <PlusIcon />
                 Create
@@ -692,7 +697,7 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => setShowWorkstreamForm(false)}
-                className="h-10 rounded-[8px] px-4 text-[14px] font-semibold text-[var(--text-secondary)] transition-colors hover:bg-[var(--surface-muted)] hover:text-[var(--text)]"
+                className="h-10 rounded-[8px] px-4 text-[14px] font-semibold text-[var(--text-secondary)] transition-[background-color,color,transform] duration-200 hover:bg-[var(--surface-muted)] hover:text-[var(--text)] active:scale-[0.98]"
               >
                 Cancel
               </button>

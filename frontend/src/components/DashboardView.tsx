@@ -39,9 +39,9 @@ function CompleteCircle({
         e.stopPropagation();
         onClick();
       }}
-      className={`mt-0.5 grid h-[21px] w-[21px] shrink-0 place-items-center rounded-full border transition-colors ${
+      className={`mt-0.5 grid h-[21px] w-[21px] shrink-0 place-items-center rounded-full border transition-[background-color,border-color,color,box-shadow,transform] duration-200 ease-out hover:scale-110 active:scale-95 ${
         done
-          ? "border-[var(--accent)] bg-[var(--accent)] text-white"
+          ? "border-[var(--accent)] bg-[var(--accent)] text-white shadow-[var(--shadow-sm)]"
           : "border-[var(--circle-border)] text-transparent hover:border-[var(--accent)] hover:text-[var(--accent)]"
       }`}
       aria-label={done ? "Mark task incomplete" : "Complete task"}
@@ -58,10 +58,12 @@ function TaskRow({
   task,
   onClick,
   onToggleTask,
+  index,
 }: {
   task: TaskCard;
   onClick: () => void;
   onToggleTask: (id: string, status: TaskStatus) => void;
+  index: number;
 }) {
   const color = task.workstream.color || "#8e8e93";
   const due = formatDue(task.due_at);
@@ -79,7 +81,8 @@ function TaskRow({
       }}
       role="button"
       tabIndex={0}
-      className="group flex cursor-pointer gap-3 rounded-[8px] px-3 py-2.5 outline-none transition-colors hover:bg-[var(--row-hover)] focus-visible:bg-[var(--row-hover)]"
+      style={{ animationDelay: `${Math.min(index * 22, 160)}ms` }}
+      className="animate-list-in group flex cursor-pointer gap-3 rounded-[8px] px-3 py-2.5 outline-none transition-[background-color,transform] duration-200 ease-out hover:translate-x-1 hover:bg-[var(--row-hover)] focus-visible:bg-[var(--row-hover)] active:scale-[0.995]"
     >
       <CompleteCircle
         done={task.status === "done"}
@@ -98,7 +101,7 @@ function TaskRow({
           </p>
           {priority && (
             <span
-              className={`shrink-0 rounded-[6px] px-2 py-0.5 text-[11px] font-semibold ${
+              className={`shrink-0 rounded-[6px] px-2 py-0.5 text-[11px] font-semibold transition-colors ${
                 task.priority >= 3
                   ? "bg-[var(--danger-soft)] text-[var(--danger)]"
                   : task.priority === 2
@@ -152,12 +155,13 @@ function TaskList({
   if (tasks.length === 0) return <EmptyState />;
 
   return (
-    <div className="overflow-hidden rounded-[8px] border border-[var(--border-subtle)] bg-[var(--surface-raised)] shadow-[var(--shadow-sm)]">
+    <div className="animate-fade-up overflow-hidden rounded-[8px] border border-[var(--border-subtle)] bg-[var(--surface-raised)] shadow-[var(--shadow-sm)] transition-[background-color,border-color,box-shadow] duration-200">
       <div className="divide-y-0 px-1 py-1">
-        {tasks.map((task) => (
+        {tasks.map((task, index) => (
           <TaskRow
             key={task.id}
             task={task}
+            index={index}
             onClick={() => onTaskClick(task.id)}
             onToggleTask={onToggleTask}
           />
@@ -188,8 +192,12 @@ export function DashboardView({
 
   return (
     <div className="space-y-7">
-      {data.groups?.map((group) => (
-        <section key={group.key}>
+      {data.groups?.map((group, index) => (
+        <section
+          key={group.key}
+          className="animate-fade-up"
+          style={{ animationDelay: `${Math.min(index * 42, 180)}ms` }}
+        >
           <div className="mb-2 flex items-center gap-2 px-1">
             <h3 className="text-[13px] font-semibold uppercase text-[var(--text-muted)]">
               {group.label}
@@ -211,7 +219,7 @@ export function DashboardView({
 
 function EmptyState() {
   return (
-    <div className="rounded-[8px] border border-dashed border-[var(--border-strong)] bg-[var(--surface-raised)] px-6 py-12 text-center">
+    <div className="animate-scale-in rounded-[8px] border border-dashed border-[var(--border-strong)] bg-[var(--surface-raised)] px-6 py-12 text-center transition-colors">
       <p className="text-[15px] font-semibold text-[var(--text-secondary)]">No tasks</p>
     </div>
   );
