@@ -1,16 +1,41 @@
 /**
- * Copy DoMyTasks app icon into icon.png before mcpb pack.
+ * Generate the Claude Desktop extension icon before mcpb pack.
  */
-import { copyFileSync, existsSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { copyFileSync, existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { tmpdir } from "node:os";
+import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const iconPng = join(root, "icon.png");
-const sourceIcon = join(root, "../../frontend/public/domytasks-icon-512.png");
+const sourceSvg = join(root, "../../frontend/public/domytasks-reminders.svg");
+const fallbackPng = join(root, "../../frontend/public/domytasks-icon-512.png");
 
-if (existsSync(sourceIcon)) {
-  copyFileSync(sourceIcon, iconPng);
+function renderSvgWithQuickLook(svgPath, pngPath) {
+  const outDir = mkdtempSync(join(tmpdir(), "domytasks-icon-"));
+  const renderedPng = join(outDir, `${basename(svgPath)}.png`);
+  try {
+    execFileSync("qlmanage", ["-t", "-s", "512", "-o", outDir, svgPath], {
+      stdio: "ignore",
+    });
+    if (!existsSync(renderedPng)) return false;
+    copyFileSync(renderedPng, pngPath);
+    return true;
+  } catch {
+    return false;
+  } finally {
+    rmSync(outDir, { recursive: true, force: true });
+  }
+}
+
+if (existsSync(sourceSvg) && renderSvgWithQuickLook(sourceSvg, iconPng)) {
+  console.log("prepack: rendered domytasks-reminders.svg → icon.png");
+  process.exit(0);
+}
+
+if (existsSync(fallbackPng)) {
+  copyFileSync(fallbackPng, iconPng);
   console.log("prepack: copied domytasks-icon-512.png → icon.png");
   process.exit(0);
 }
@@ -23,4 +48,4 @@ writeFileSync(
     "base64",
   ),
 );
-console.log("prepack: wrote placeholder icon.png (domytasks-icon-512.png not found)");
+console.log("prepack: wrote placeholder icon.png (logo sources not found)");
