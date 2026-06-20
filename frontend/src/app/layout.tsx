@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   icons: {
     icon: [
+      { url: "/domytasks-reminders.svg", type: "image/svg+xml" },
       { url: "/favicon.ico", sizes: "256x256", type: "image/x-icon" },
       { url: "/domytasks-icon-192.png", sizes: "192x192", type: "image/png" },
       { url: "/domytasks-icon-512.png", sizes: "512x512", type: "image/png" },
