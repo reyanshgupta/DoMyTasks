@@ -20,6 +20,7 @@ import { LogoMark } from "@/components/LogoMark";
 import { TaskForm } from "@/components/TaskForm";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { TokenGate } from "@/components/TokenGate";
+import { WorkstreamFilter } from "@/components/WorkstreamFilter";
 
 function SearchIcon() {
   return (
@@ -380,17 +381,31 @@ export default function Home() {
     };
   }, [allTasks]);
 
-  const selectedWorkstream = prefs?.workstream_ids?.[0]
-    ? workstreams.find((ws) => ws.id === prefs.workstream_ids?.[0])
-    : null;
+  const selectedWorkstream =
+    prefs?.view === "dashboard" &&
+    prefs.group_by === "flat" &&
+    prefs.workstream_ids?.length === 1
+      ? workstreams.find((ws) => ws.id === prefs.workstream_ids?.[0])
+      : null;
+
+  const workstreamFilterCount = prefs?.workstream_ids?.length ?? 0;
+  const showWorkstreamFilter =
+    prefs?.view === "kanban" ||
+    (prefs?.view === "dashboard" && prefs.group_by === "day");
+  const filterSubtitle =
+    showWorkstreamFilter && workstreamFilterCount > 0
+      ? workstreamFilterCount === 1
+        ? workstreams.find((ws) => ws.id === prefs?.workstream_ids?.[0])?.name
+        : `${workstreamFilterCount} streams`
+      : null;
 
   const pageTitle =
     prefs?.view === "kanban"
       ? "Board"
-      : selectedWorkstream
-        ? selectedWorkstream.name
-        : prefs?.group_by === "day"
-          ? "Scheduled"
+      : prefs?.group_by === "day"
+        ? "Scheduled"
+        : selectedWorkstream
+          ? selectedWorkstream.name
           : "All Tasks";
   const pageAccent =
     selectedWorkstream?.color ||
@@ -463,10 +478,10 @@ export default function Home() {
             onClick={() => updatePrefs({ view: "dashboard", group_by: "flat", workstream_ids: null })}
           />
           <SidebarItem
-            active={prefs?.view === "dashboard" && !prefs.workstream_ids?.length && prefs.group_by === "day"}
+            active={prefs?.view === "dashboard" && prefs.group_by === "day"}
             icon={<CalendarIcon />}
             label="Scheduled"
-            onClick={() => updatePrefs({ view: "dashboard", group_by: "day", workstream_ids: null, sort_by: "due_at", sort_dir: "asc" })}
+            onClick={() => updatePrefs({ view: "dashboard", group_by: "day", sort_by: "due_at", sort_dir: "asc" })}
           />
           <SidebarItem
             active={prefs?.view === "kanban"}
@@ -496,7 +511,12 @@ export default function Home() {
             {workstreams.map((ws) => (
               <SidebarItem
                 key={ws.id}
-                active={prefs?.view === "dashboard" && prefs.workstream_ids?.[0] === ws.id}
+                active={
+                  prefs?.view === "dashboard" &&
+                  prefs.group_by === "flat" &&
+                  prefs.workstream_ids?.length === 1 &&
+                  prefs.workstream_ids[0] === ws.id
+                }
                 color={ws.color || "#8e8e93"}
                 label={ws.name}
                 count={countByWorkstream(allTasks, ws.id)}
@@ -522,6 +542,7 @@ export default function Home() {
               </h2>
               <p className="mt-1 text-[14px] font-medium text-[var(--text-muted)]">
                 {stats.open} open · {stats.done} done
+                {filterSubtitle ? ` · ${filterSubtitle}` : ""}
               </p>
             </div>
             <button
@@ -556,6 +577,13 @@ export default function Home() {
                 <option value="day">Date</option>
                 <option value="workstream">Streams</option>
               </QuietSelect>
+            )}
+            {showWorkstreamFilter && (
+              <WorkstreamFilter
+                workstreams={workstreams}
+                selectedIds={prefs?.workstream_ids ?? null}
+                onChange={(ids) => updatePrefs({ workstream_ids: ids })}
+              />
             )}
             {prefs?.view === "kanban" && (
               <button
