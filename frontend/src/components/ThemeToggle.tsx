@@ -64,7 +64,13 @@ function MoonIcon() {
   );
 }
 
-export function ThemeToggle({ className = "" }: { className?: string }) {
+export function ThemeToggle({
+  className = "",
+  variant = "full",
+}: {
+  className?: string;
+  variant?: "full" | "compact";
+}) {
   const theme = useSyncExternalStore(subscribeTheme, readTheme, readServerTheme);
 
   useEffect(() => {
@@ -80,6 +86,23 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
   function toggleTheme() {
     const next = readTheme() === "dark" ? "light" : "dark";
     applyTheme(next);
+  }
+
+  if (variant === "compact") {
+    return (
+      <button
+        type="button"
+        aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+        aria-pressed={theme === "dark"}
+        title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+        onClick={toggleTheme}
+        className={`theme-toggle-compact ${className}`}
+      >
+        <span className="theme-toggle-compact-icon" aria-hidden="true">
+          {theme === "dark" ? <MoonIcon /> : <SunIcon />}
+        </span>
+      </button>
+    );
   }
 
   return (

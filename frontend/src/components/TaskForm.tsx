@@ -166,7 +166,7 @@ export function TaskForm({
           </div>
 
           {error && (
-            <p className="animate-scale-in mt-4 rounded-[8px] border border-[rgba(255,59,48,0.24)] bg-[var(--danger-soft)] px-3 py-2 text-[13px] font-medium text-[var(--danger)]">
+            <p className="animate-scale-in mt-4 rounded-[8px] border border-[var(--danger-border)] bg-[var(--danger-soft)] px-3 py-2 text-[13px] font-medium text-[var(--danger)]">
               {error}
             </p>
           )}

@@ -19,6 +19,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { useState } from "react";
 import { TaskCard } from "./TaskCard";
+import { EmptyState } from "@/components/EmptyState";
 import type { KanbanResponse, TaskCard as TaskCardType, TaskStatus } from "@/lib/types";
 
 const STATUSES = new Set(["todo", "doing", "done"]);
@@ -67,17 +68,18 @@ function DragHandle({
 function SortableKanbanTask({
   task,
   onClick,
+  onToggleTask,
 }: {
   task: TaskCardType;
   onClick: () => void;
+  onToggleTask: (id: string, status: TaskStatus) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: task.id });
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: isDragging ? undefined : CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.4 : 1,
-    zIndex: isDragging ? 1 : undefined,
+    opacity: isDragging ? 0 : 1,
   };
 
   return (
@@ -85,6 +87,7 @@ function SortableKanbanTask({
       <TaskCard
         task={task}
         onClick={onClick}
+        onToggle={onToggleTask}
         dragHandle={<DragHandle listeners={listeners} />}
       />
     </div>
@@ -94,15 +97,16 @@ function SortableKanbanTask({
 function DraggableKanbanTask({
   task,
   onClick,
+  onToggleTask,
 }: {
   task: TaskCardType;
   onClick: () => void;
+  onToggleTask: (id: string, status: TaskStatus) => void;
 }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
+  const { attributes, listeners, setNodeRef, isDragging } =
     useDraggable({ id: task.id });
   const style = {
-    transform: CSS.Transform.toString(transform),
-    opacity: isDragging ? 0.4 : 1,
+    opacity: isDragging ? 0 : 1,
   };
 
   return (
@@ -110,6 +114,7 @@ function DraggableKanbanTask({
       <TaskCard
         task={task}
         onClick={onClick}
+        onToggle={onToggleTask}
         dragHandle={<DragHandle listeners={listeners} />}
       />
     </div>
@@ -119,29 +124,35 @@ function DraggableKanbanTask({
 function KanbanTask({
   task,
   onClick,
+  onToggleTask,
   manualSort,
 }: {
   task: TaskCardType;
   onClick: () => void;
+  onToggleTask: (id: string, status: TaskStatus) => void;
   manualSort: boolean;
 }) {
   if (manualSort) {
-    return <SortableKanbanTask task={task} onClick={onClick} />;
+    return <SortableKanbanTask task={task} onClick={onClick} onToggleTask={onToggleTask} />;
   }
 
-  return <DraggableKanbanTask task={task} onClick={onClick} />;
+  return <DraggableKanbanTask task={task} onClick={onClick} onToggleTask={onToggleTask} />;
 }
 
 function DroppableColumn({
   status,
   tasks,
   onTaskClick,
+  onToggleTask,
   manualSort,
+  isDragging,
 }: {
   status: TaskStatus;
   tasks: TaskCardType[];
   onTaskClick: (id: string) => void;
+  onToggleTask: (id: string, status: TaskStatus) => void;
   manualSort: boolean;
+  isDragging: boolean;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
   const meta = COLUMN_META[status];
@@ -150,7 +161,9 @@ function DroppableColumn({
     <div className="flex min-h-[360px] flex-col gap-2.5 p-2.5">
       {tasks.length === 0 ? (
         <div className="animate-scale-in grid min-h-[120px] place-items-center rounded-[8px] border border-dashed border-[var(--border)] bg-[var(--surface-raised)] transition-colors">
-          <p className="text-[13px] font-medium text-[var(--text-muted)]">No tasks</p>
+          <p className="text-[13px] font-medium text-[var(--text-muted)]">
+            {isDragging ? "Drop tasks here" : "No tasks"}
+          </p>
         </div>
       ) : (
         tasks.map((task) => (
@@ -158,6 +171,7 @@ function DroppableColumn({
             key={task.id}
             task={task}
             onClick={() => onTaskClick(task.id)}
+            onToggleTask={onToggleTask}
             manualSort={manualSort}
           />
         ))
@@ -198,12 +212,18 @@ export function KanbanBoard({
   onMove,
   onReorder,
   onTaskClick,
+  onToggleTask,
+  searchQuery,
+  onClearSearch,
 }: {
   board: KanbanResponse;
   sortBy: string;
   onMove: (taskId: string, status: TaskStatus) => Promise<void>;
   onReorder: (orderedIds: string[]) => Promise<void>;
   onTaskClick: (id: string) => void;
+  onToggleTask: (id: string, status: TaskStatus) => void;
+  searchQuery?: string;
+  onClearSearch?: () => void;
 }) {
   const [activeTask, setActiveTask] = useState<TaskCardType | null>(null);
   const manualSort = sortBy === "manual";
@@ -212,6 +232,18 @@ export function KanbanBoard({
   const taskMap = new Map<string, TaskCardType>();
   for (const col of board.columns) {
     for (const t of col.tasks) taskMap.set(t.id, t);
+  }
+
+  const totalTasks = board.columns.reduce((sum, col) => sum + col.tasks.length, 0);
+
+  if (totalTasks === 0 && searchQuery?.trim()) {
+    return (
+      <EmptyState
+        title={`No tasks match "${searchQuery.trim()}"`}
+        actionLabel="Clear search"
+        onAction={onClearSearch}
+      />
+    );
   }
 
   function handleDragStart(event: DragStartEvent) {
@@ -268,21 +300,24 @@ export function KanbanBoard({
         {board.columns.map((col, i) => (
           <div
             key={col.status}
-            className={`animate-fade-up stagger-${i + 1} flex min-w-[270px] flex-1`}
+            className="animate-fade-up flex min-w-[270px] flex-1"
+            style={{ animationDelay: `${Math.min(i * 42, 180)}ms` }}
           >
             <DroppableColumn
               status={col.status}
               tasks={col.tasks}
               onTaskClick={onTaskClick}
+              onToggleTask={onToggleTask}
               manualSort={manualSort}
+              isDragging={activeTask !== null}
             />
           </div>
         ))}
       </div>
       <DragOverlay dropAnimation={{ duration: 220, easing: "cubic-bezier(0.22, 1, 0.36, 1)" }}>
         {activeTask ? (
-          <div className="rotate-1 scale-[1.03] opacity-95 shadow-[var(--shadow-lg)]">
-            <TaskCard task={activeTask} />
+          <div className="w-[250px] rotate-1 scale-[1.02] opacity-95 shadow-[var(--shadow-lg)]">
+            <TaskCard task={activeTask} isDragPreview />
           </div>
         ) : null}
       </DragOverlay>

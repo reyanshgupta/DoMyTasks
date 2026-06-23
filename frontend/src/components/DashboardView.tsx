@@ -1,58 +1,8 @@
 import type { DashboardResponse, TaskCard, TaskStatus } from "@/lib/types";
-
-function formatDue(due: string | null): { label: string; urgent: boolean } {
-  if (!due) return { label: "", urgent: false };
-  const d = new Date(due);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const dueDay = new Date(d);
-  dueDay.setHours(0, 0, 0, 0);
-  const diff = (dueDay.getTime() - today.getTime()) / 86400000;
-  if (diff < 0) return { label: "Overdue", urgent: true };
-  if (diff === 0) return { label: "Today", urgent: true };
-  if (diff === 1) return { label: "Tomorrow", urgent: false };
-  return {
-    label: d.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
-    urgent: false,
-  };
-}
-
-const PRIORITY_LABELS = ["", "Low", "Medium", "High"];
-
-function statusLabel(status: TaskStatus) {
-  if (status === "doing") return "In progress";
-  if (status === "done") return "Done";
-  return "";
-}
-
-function CompleteCircle({
-  done,
-  onClick,
-}: {
-  done: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick();
-      }}
-      className={`mt-0.5 grid h-[21px] w-[21px] shrink-0 place-items-center rounded-full border transition-[background-color,border-color,color,box-shadow,transform] duration-200 ease-out hover:scale-110 active:scale-95 ${
-        done
-          ? "border-[var(--accent)] bg-[var(--accent)] text-white shadow-[var(--shadow-sm)]"
-          : "border-[var(--circle-border)] text-transparent hover:border-[var(--accent)] hover:text-[var(--accent)]"
-      }`}
-      aria-label={done ? "Mark task incomplete" : "Complete task"}
-      title={done ? "Mark incomplete" : "Complete"}
-    >
-      <svg width="12" height="10" viewBox="0 0 12 10" fill="none" aria-hidden="true">
-        <path d="M1.3 5.2 4.4 8.1 10.7 1.3" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    </button>
-  );
-}
+import { emptyGroupMessage, formatDue, statusLabel } from "@/lib/taskDisplay";
+import { CompleteCircle } from "@/components/CompleteCircle";
+import { EmptyState } from "@/components/EmptyState";
+import { PriorityBadge } from "@/components/PriorityBadge";
 
 function TaskRow({
   task,
@@ -67,7 +17,6 @@ function TaskRow({
 }) {
   const color = task.workstream.color || "#8e8e93";
   const due = formatDue(task.due_at);
-  const priority = PRIORITY_LABELS[task.priority] || "";
   const status = statusLabel(task.status);
 
   return (
@@ -99,19 +48,7 @@ function TaskRow({
           >
             {task.title}
           </p>
-          {priority && (
-            <span
-              className={`shrink-0 rounded-[6px] px-2 py-0.5 text-[11px] font-semibold transition-colors ${
-                task.priority >= 3
-                  ? "bg-[var(--danger-soft)] text-[var(--danger)]"
-                  : task.priority === 2
-                    ? "bg-[var(--warning-soft)] text-[var(--warning)]"
-                    : "bg-[var(--surface-strong)] text-[var(--text-muted)]"
-              }`}
-            >
-              {priority}
-            </span>
-          )}
+          <PriorityBadge priority={task.priority} />
         </div>
 
         <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] font-medium text-[var(--text-muted)]">
@@ -147,12 +84,29 @@ function TaskList({
   tasks,
   onTaskClick,
   onToggleTask,
+  searchQuery,
+  onClearSearch,
+  emptyTitle,
 }: {
   tasks: TaskCard[];
   onTaskClick: (id: string) => void;
   onToggleTask: (id: string, status: TaskStatus) => void;
+  searchQuery?: string;
+  onClearSearch?: () => void;
+  emptyTitle?: string;
 }) {
-  if (tasks.length === 0) return <EmptyState />;
+  if (tasks.length === 0) {
+    if (searchQuery?.trim()) {
+      return (
+        <EmptyState
+          title={`No tasks match "${searchQuery.trim()}"`}
+          actionLabel="Clear search"
+          onAction={onClearSearch}
+        />
+      );
+    }
+    return <EmptyState title={emptyTitle || "No tasks"} />;
+  }
 
   return (
     <div className="animate-fade-up overflow-hidden rounded-[8px] border border-[var(--border-subtle)] bg-[var(--surface-raised)] shadow-[var(--shadow-sm)] transition-[background-color,border-color,box-shadow] duration-200">
@@ -175,10 +129,14 @@ export function DashboardView({
   data,
   onTaskClick,
   onToggleTask,
+  searchQuery,
+  onClearSearch,
 }: {
   data: DashboardResponse;
   onTaskClick: (id: string) => void;
   onToggleTask: (id: string, status: TaskStatus) => void;
+  searchQuery?: string;
+  onClearSearch?: () => void;
 }) {
   if (data.group_by === "flat" && data.tasks) {
     return (
@@ -186,13 +144,28 @@ export function DashboardView({
         tasks={data.tasks}
         onTaskClick={onTaskClick}
         onToggleTask={onToggleTask}
+        searchQuery={searchQuery}
+        onClearSearch={onClearSearch}
+      />
+    );
+  }
+
+  const groups = data.groups || [];
+  const hasAnyTasks = groups.some((g) => g.tasks.length > 0);
+
+  if (!hasAnyTasks && searchQuery?.trim()) {
+    return (
+      <EmptyState
+        title={`No tasks match "${searchQuery.trim()}"`}
+        actionLabel="Clear search"
+        onAction={onClearSearch}
       />
     );
   }
 
   return (
     <div className="space-y-7">
-      {data.groups?.map((group, index) => (
+      {groups.map((group, index) => (
         <section
           key={group.key}
           className="animate-fade-up"
@@ -210,17 +183,12 @@ export function DashboardView({
             tasks={group.tasks}
             onTaskClick={onTaskClick}
             onToggleTask={onToggleTask}
+            searchQuery={searchQuery}
+            onClearSearch={onClearSearch}
+            emptyTitle={emptyGroupMessage(group.key)}
           />
         </section>
       ))}
-    </div>
-  );
-}
-
-function EmptyState() {
-  return (
-    <div className="animate-scale-in rounded-[8px] border border-dashed border-[var(--border-strong)] bg-[var(--surface-raised)] px-6 py-12 text-center transition-colors">
-      <p className="text-[15px] font-semibold text-[var(--text-secondary)]">No tasks</p>
     </div>
   );
 }

@@ -26,6 +26,7 @@
   --accent-soft: #e6f1ff;
   --danger: #ff3b30;
   --danger-soft: #fff0ef;
+  --danger-border: rgba(255, 59, 48, 0.24);
   --warning: #ff9500;
   --warning-soft: #fff4df;
   --doing: #34c759;
@@ -74,6 +75,7 @@
   --accent-soft: rgba(77, 163, 255, 0.18);
   --danger: #ff6b61;
   --danger-soft: rgba(255, 107, 97, 0.16);
+  --danger-border: rgba(255, 107, 97, 0.32);
   --warning: #ffb340;
   --warning-soft: rgba(255, 179, 64, 0.16);
   --doing: #4fd27a;
@@ -421,6 +423,42 @@ textarea:focus-visible {
   border-color: rgba(255, 255, 255, 0.54);
   background: #ffffff;
   transform: translateX(20px);
+}
+
+.theme-toggle-compact {
+  display: grid;
+  height: 32px;
+  width: 32px;
+  place-items: center;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  color: var(--text-muted);
+  box-shadow: var(--shadow-sm);
+  transition: background-color var(--motion-medium) var(--ease-standard),
+    border-color var(--motion-medium) var(--ease-standard),
+    color var(--motion-fast) var(--ease-standard),
+    transform var(--motion-fast) var(--ease-standard);
+}
+
+.theme-toggle-compact:hover {
+  border-color: var(--border-strong);
+  color: var(--text);
+  transform: translateY(-1px);
+}
+
+.theme-toggle-compact:active {
+  transform: translateY(0) scale(0.95);
+}
+
+.theme-toggle-compact-icon {
+  display: grid;
+  place-items: center;
+  color: var(--warning);
+}
+
+[data-theme="dark"] .theme-toggle-compact-icon {
+  color: var(--accent);
 }
 
 html:not(.theme-animate) body,
