@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="frontend/public/domytasks-reminders.svg" alt="DoMyTasks" width="120" />
+</p>
+
 <h1 align="center">DoMyTasks</h1>
 
 <p align="center">
