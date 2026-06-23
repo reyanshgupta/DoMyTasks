@@ -19,7 +19,7 @@
 <p align="center">
   <a href="#why-i-built-this">Why</a> ·
   <a href="#get-started">Quick start</a> ·
-  <a href="docs/agents.md">Agents</a> ·
+  <a href="#documentation">Docs</a> ·
   <a href="#agent-compatibility">Clients</a> ·
   <a href="#development">Development</a>
 </p>
@@ -65,8 +65,6 @@ So I built DoMyTasks. One list. You manage it in the browser, or your agent mana
 
 You add a task in the UI, or tell your agent *"add a task to fix the login bug."* Your agent reads the backlog, claims what it's working on, and marks things done. You always know the current state without asking.
 
-→ [Agent setup guide](docs/agents.md) · [Product spec](docs/spec-v1.md)
-
 ## Get started
 
 ```bash
@@ -75,16 +73,7 @@ cp .env.example .env          # set DOMYTASKS_TOKEN to something secret
 docker compose up --build
 ```
 
-Open **http://localhost:3603** — the dashboard loads with no login screen. Local auto-login is on by default (`DOMYTASKS_LOCAL_AUTO_LOGIN=true` in `.env.example`).
-
-### Browser vs agent auth
-
-| Who | What you do |
-|---|---|
-| **You (browser)** | Just open the app. No token to paste when local auto-login is enabled. |
-| **Agents (MCP / API)** | Use `DOMYTASKS_TOKEN` from `.env` as a bearer token. |
-
-If you turn off local auto-login (`DOMYTASKS_LOCAL_AUTO_LOGIN=false`), paste your token once in the browser — a session cookie keeps you signed in after that. Turn it off when exposing DoMyTasks beyond a trusted machine.
+Open the app in your browser. With local auto-login on (the default in `.env.example`), the dashboard loads with no login screen.
 
 **Connect Claude Desktop** (easiest path):
 
@@ -96,7 +85,16 @@ Install `dist/domytasks.mcpb` in Claude Desktop → Settings → Extensions. Use
 
 Then try: *"What's on my task list?"* Your agent should pull it up without you explaining how.
 
-Full setup for Cursor, Claude web, Hermes, and remote access → [docs/agents.md](docs/agents.md)
+## Browser vs agent auth
+
+| Who | What you do |
+|---|---|
+| **You (browser)** | Just open the app when `DOMYTASKS_LOCAL_AUTO_LOGIN=true` (default for local Docker). |
+| **Agents (MCP / API)** | Send `Authorization: Bearer <DOMYTASKS_TOKEN>` from `.env`. |
+
+If you turn off local auto-login, paste your token once in the browser. A session cookie keeps you signed in after that. Turn it off when exposing DoMyTasks beyond a trusted machine.
+
+Full setup for Cursor, Claude web, Hermes, remote access, and Authelia: [docs/agents.md](docs/agents.md)
 
 ## Task model
 
@@ -116,7 +114,7 @@ Every task is a **pickup packet**: enough for an agent to start without prior co
 | Client | Works? | Notes |
 |---|---|---|
 | Claude Desktop | ✅ | [MCPB extension](extensions/claude-desktop/README.md) |
-| Claude web | ✅ | Custom connector |
+| Claude web | ✅ | Custom connector ([docs/agents.md](docs/agents.md)) |
 | Cursor | ✅ | MCP config with bearer token |
 | Hermes | ✅ | Streamable HTTP |
 | Scripts | ✅ | REST API, same data |
@@ -136,12 +134,11 @@ Every task is a **pickup packet**: enough for an agent to start without prior co
 
 ## Documentation
 
-| Start here | Go deeper |
-|---|---|
-| [Quick start](#get-started) | [Product spec](docs/spec-v1.md) |
-| [Browser vs agent auth](#browser-vs-agent-auth) | [Environment variables](.env.example) |
-| [Agent setup](docs/agents.md) | [AGENTS.md](AGENTS.md) |
-| [Claude Desktop extension](extensions/claude-desktop/README.md) | [Web auth (Authelia)](docs/agents.md#web-dashboard-auth) |
+- **[docs/agents.md](docs/agents.md)**: connect Claude, Cursor, Hermes, and other MCP clients; web auth and Authelia
+- **[extensions/claude-desktop/README.md](extensions/claude-desktop/README.md)**: build and install the Claude Desktop extension
+- **[AGENTS.md](AGENTS.md)**: MCP quick reference for agents (tools, routing, task model)
+- **[docs/spec-v1.md](docs/spec-v1.md)**: product spec and architecture
+- **[.env.example](.env.example)**: configuration reference
 
 ## Development
 
