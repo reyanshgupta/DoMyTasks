@@ -2,7 +2,7 @@ export type TaskStatus = "todo" | "doing" | "done";
 
 export interface AuthSession {
   authenticated: boolean;
-  method: "bearer" | "session" | "authelia" | null;
+  method: "bearer" | "session" | "authelia" | "local" | null;
   user: string | null;
   authelia_enabled: boolean;
 }

@@ -12,7 +12,7 @@ class AuthLogin(BaseModel):
 
 class AuthSession(BaseModel):
     authenticated: bool
-    method: Optional[Literal["bearer", "session", "authelia"]] = None
+    method: Optional[Literal["bearer", "session", "authelia", "local"]] = None
     user: Optional[str] = None
     authelia_enabled: bool = False
 

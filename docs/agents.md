@@ -357,9 +357,15 @@ Full route list mirrors MCP capabilities — see [spec-v1.md](spec-v1.md).
 
 ## Web dashboard auth
 
-The browser dashboard does not need the bearer token on every refresh. Enter
-`DOMYTASKS_TOKEN` once in the web UI; DoMyTasks sets a signed `HttpOnly` session
-cookie for `/api` requests. MCP remains bearer-token only.
+The browser dashboard does not need the bearer token on every refresh.
+
+**Local use:** set `DOMYTASKS_LOCAL_AUTO_LOGIN=true` in `.env` (default in
+`.env.example`) to skip the login screen when you open the app on a trusted
+machine. MCP and direct API calls still require `Authorization: Bearer
+$DOMYTASKS_TOKEN`.
+
+**Manual login:** enter `DOMYTASKS_TOKEN` once in the web UI; DoMyTasks sets a
+signed `HttpOnly` session cookie for `/api` requests.
 
 For Authelia, protect DoMyTasks with your reverse proxy and forward Authelia's
 trusted header response values, especially `Remote-User`, to the backend only

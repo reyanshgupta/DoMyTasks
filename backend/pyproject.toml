@@ -1,7 +1,8 @@
 [project]
 name = "domytasks"
 version = "0.1.0"
-description = "Agent-first task tracker"
+description = "Self-hosted, agent-first task tracker — one Docker container, MCP-native, humans and AI agents share the same backlog."
+license = "Apache-2.0"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.115.0",

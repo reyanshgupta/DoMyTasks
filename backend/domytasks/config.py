@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     authelia_trusted_proxies: str = ""
     authelia_allowed_users: str = ""
     authelia_allowed_groups: str = ""
+    local_auto_login: bool = False
 
 
 @lru_cache

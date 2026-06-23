@@ -137,6 +137,31 @@ def test_authelia_requires_trusted_proxy(authelia_untrusted_client):
     assert r.status_code == 401
 
 
+def test_local_auto_login_skips_web_auth(client, monkeypatch):
+    monkeypatch.setenv("DOMYTASKS_LOCAL_AUTO_LOGIN", "true")
+    get_settings.cache_clear()
+
+    r = client.get("/api/auth/session")
+    assert r.status_code == 200
+    assert r.json() == {
+        "authenticated": True,
+        "method": "local",
+        "user": None,
+        "authelia_enabled": False,
+    }
+
+    r = client.get("/api/tasks")
+    assert r.status_code == 200
+
+
+def test_local_auto_login_does_not_apply_to_mcp(client, monkeypatch):
+    monkeypatch.setenv("DOMYTASKS_LOCAL_AUTO_LOGIN", "true")
+    get_settings.cache_clear()
+
+    r = client.get("/mcp/")
+    assert r.status_code == 401
+
+
 def test_workstream_crud(client, auth_headers):
     r = client.post(
         "/api/workstreams",
@@ -224,3 +249,166 @@ def test_view_prefs(client, auth_headers):
         headers=auth_headers,
     )
     assert r.json()["view"] == "dashboard"
+
+
+def test_auth_session_with_bearer(client, auth_headers):
+    r = client.get("/api/auth/session", headers=auth_headers)
+    assert r.status_code == 200
+    assert r.json()["authenticated"] is True
+    assert r.json()["method"] == "bearer"
+
+
+def test_workstream_delete(client, auth_headers):
+    ws = client.post(
+        "/api/workstreams",
+        json={"name": "Temp"},
+        headers=auth_headers,
+    ).json()
+    client.post(
+        "/api/tasks",
+        json={"workstream_id": ws["id"], "title": "T", "context": "C"},
+        headers=auth_headers,
+    )
+
+    r = client.delete(f"/api/workstreams/{ws['id']}", headers=auth_headers)
+    assert r.status_code == 200
+    assert r.json()["deleted"] == ws["id"]
+
+    r = client.get("/api/workstreams", headers=auth_headers)
+    assert r.json() == []
+
+
+def test_workstream_delete_not_found(client, auth_headers):
+    r = client.delete("/api/workstreams/missing", headers=auth_headers)
+    assert r.status_code == 404
+
+
+def test_task_claim_move_reorder(client, auth_headers):
+    ws = client.post(
+        "/api/workstreams",
+        json={"name": "Eng"},
+        headers=auth_headers,
+    ).json()
+    t1 = client.post(
+        "/api/tasks",
+        json={"workstream_id": ws["id"], "title": "A", "context": "c"},
+        headers=auth_headers,
+    ).json()
+    t2 = client.post(
+        "/api/tasks",
+        json={"workstream_id": ws["id"], "title": "B", "context": "c"},
+        headers=auth_headers,
+    ).json()
+
+    r = client.post(
+        f"/api/tasks/{t1['id']}/claim",
+        json={"claimed_by": "agent:claude"},
+        headers=auth_headers,
+    )
+    assert r.status_code == 200
+    assert r.json()["claimed_by"] == "agent:claude"
+
+    r = client.post(
+        f"/api/tasks/{t1['id']}/move",
+        json={"status": "doing"},
+        headers=auth_headers,
+    )
+    assert r.json()["status"] == "doing"
+
+    r = client.post(
+        "/api/tasks/reorder",
+        json={"ordered_ids": [t2["id"], t1["id"]]},
+        headers=auth_headers,
+    )
+    assert r.status_code == 200
+    assert [t["id"] for t in r.json()] == [t2["id"], t1["id"]]
+
+
+def test_task_not_found(client, auth_headers):
+    r = client.get("/api/tasks/01NONEXISTENT", headers=auth_headers)
+    assert r.status_code == 404
+
+
+def test_task_validation_error(client, auth_headers):
+    ws = client.post(
+        "/api/workstreams",
+        json={"name": "Eng"},
+        headers=auth_headers,
+    ).json()
+    r = client.post(
+        "/api/tasks",
+        json={"workstream_id": ws["id"], "title": "", "context": "c"},
+        headers=auth_headers,
+    )
+    assert r.status_code == 400
+
+
+def test_task_list_filters(client, auth_headers):
+    ws = client.post(
+        "/api/workstreams",
+        json={"name": "Eng"},
+        headers=auth_headers,
+    ).json()
+    client.post(
+        "/api/tasks",
+        json={"workstream_id": ws["id"], "title": "Alpha", "context": "c"},
+        headers=auth_headers,
+    )
+    t2 = client.post(
+        "/api/tasks",
+        json={
+            "workstream_id": ws["id"],
+            "title": "Beta",
+            "context": "c",
+            "status": "doing",
+        },
+        headers=auth_headers,
+    ).json()
+
+    r = client.get("/api/tasks?search=alpha", headers=auth_headers)
+    assert len(r.json()) == 1
+
+    r = client.get("/api/tasks?status=doing", headers=auth_headers)
+    assert len(r.json()) == 1
+    assert r.json()[0]["id"] == t2["id"]
+
+
+def test_dashboard_workstream_grouping(client, auth_headers):
+    ws = client.post(
+        "/api/workstreams",
+        json={"name": "Eng"},
+        headers=auth_headers,
+    ).json()
+    client.post(
+        "/api/tasks",
+        json={"workstream_id": ws["id"], "title": "T", "context": "C"},
+        headers=auth_headers,
+    )
+
+    r = client.get("/api/dashboard?group_by=workstream", headers=auth_headers)
+    assert r.status_code == 200
+    assert r.json()["group_by"] == "workstream"
+    assert len(r.json()["groups"]) == 1
+
+
+def test_kanban_hide_done(client, auth_headers):
+    ws = client.post(
+        "/api/workstreams",
+        json={"name": "Eng"},
+        headers=auth_headers,
+    ).json()
+    task = client.post(
+        "/api/tasks",
+        json={"workstream_id": ws["id"], "title": "T", "context": "C"},
+        headers=auth_headers,
+    ).json()
+    client.post(f"/api/tasks/{task['id']}/complete", headers=auth_headers)
+
+    r = client.get("/api/kanban?hide_done=true", headers=auth_headers)
+    assert len(r.json()["columns"]) == 2
+
+
+def test_mcp_trailing_slash_redirect(client, auth_headers):
+    r = client.get("/mcp", headers=auth_headers, follow_redirects=False)
+    assert r.status_code == 307
+    assert r.headers["location"].endswith("/mcp/")

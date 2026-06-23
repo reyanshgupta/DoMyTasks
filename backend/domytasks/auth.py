@@ -12,7 +12,7 @@ from starlette.responses import JSONResponse, Response
 
 from domytasks.config import get_settings
 
-AuthMethod = Literal["bearer", "session", "authelia"]
+AuthMethod = Literal["bearer", "session", "authelia", "local"]
 
 
 def _split_csv(value: str | None) -> set[str]:
@@ -163,6 +163,9 @@ def auth_method_for_request(
 
     if include_session and authelia_user(request):
         return "authelia"
+
+    if include_session and get_settings().local_auto_login:
+        return "local"
 
     return None
 

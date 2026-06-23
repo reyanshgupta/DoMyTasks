@@ -55,3 +55,19 @@ def test_sort_task_models_updated_at():
     t2 = Task(id="2", workstream_id="ws", title="b", context="c", updated_at=datetime(2025, 1, 1))
     ordered = sort_task_models([t1, t2], "updated_at")
     assert ordered[0].id == "2"
+
+
+def test_sort_by_priority_desc():
+    cards = [
+        _card("a", 1),
+        _card("b", 3),
+        _card("c", 2),
+    ]
+    ordered = sort_tasks(cards, "priority", sort_dir="desc")
+    assert [c.id for c in ordered] == ["a", "c", "b"]
+
+
+def test_sort_unknown_mode_defaults_to_priority():
+    cards = [_card("a", 1), _card("b", 3)]
+    ordered = sort_tasks(cards, "invalid")
+    assert ordered[0].id == "b"

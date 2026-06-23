@@ -126,3 +126,48 @@ def test_reorder_tasks(session, workstream):
     t1_ref = get_task(session, t1.id)
     t2_ref = get_task(session, t2.id)
     assert t2_ref.sort_order < t1_ref.sort_order
+
+
+def test_priority_clamped_on_create(session, workstream):
+    low = create_task(
+        session, workstream_id=workstream.id, title="L", context="c", priority=-5
+    )
+    high = create_task(
+        session, workstream_id=workstream.id, title="H", context="c", priority=99
+    )
+    assert low.priority == 0
+    assert high.priority == 3
+
+
+def test_tags_round_trip(session, workstream):
+    task = create_task(
+        session,
+        workstream_id=workstream.id,
+        title="Tagged",
+        context="c",
+        tags=["bug", "urgent"],
+    )
+    fetched = get_task(session, task.id)
+    assert fetched.tags == ["bug", "urgent"]
+
+
+def test_update_rejects_empty_title(session, workstream):
+    task = create_task(
+        session, workstream_id=workstream.id, title="Ok", context="c"
+    )
+    with pytest.raises(ValidationError):
+        update_task(session, task.id, title="")
+
+
+def test_list_tasks_by_status(session, workstream):
+    create_task(session, workstream_id=workstream.id, title="Todo", context="c")
+    create_task(
+        session,
+        workstream_id=workstream.id,
+        title="Doing",
+        context="c",
+        status=TaskStatus.doing,
+    )
+    doing = list_tasks(session, status=TaskStatus.doing)
+    assert len(doing) == 1
+    assert doing[0].title == "Doing"

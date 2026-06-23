@@ -49,3 +49,15 @@ async def test_discovery_tool_descriptions(guide_client):
     assert "backlog" in by_name["task_list"].lower()
     assert "standup" in by_name["task_kanban"].lower()
     assert "capture" in by_name["task_create"].lower()
+
+
+async def test_add_task_from_chat_prompt_with_hint(guide_client):
+    result = await guide_client.get_prompt("add_task_from_chat", {"workstream_hint": "Engineering"})
+    content = result.messages[0].content.text
+    assert "Engineering" in content
+
+
+async def test_pick_up_task_prompt_with_hint(guide_client):
+    result = await guide_client.get_prompt("pick_up_task", {"task_hint": "Fix auth"})
+    content = result.messages[0].content.text
+    assert "Fix auth" in content

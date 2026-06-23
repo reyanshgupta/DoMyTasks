@@ -45,7 +45,7 @@
   ],
   "tools_generated": false,
   "keywords": ["tasks", "productivity", "mcp", "agents"],
-  "license": "MIT",
+  "license": "Apache-2.0",
   "compatibility": {
     "claude_desktop": ">=0.10.0",
     "platforms": ["darwin", "win32"],

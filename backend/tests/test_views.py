@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 from domytasks.models import TaskStatus
 from domytasks.service.settings import get_view_prefs, set_view_prefs
@@ -94,3 +94,42 @@ def test_view_prefs_defaults_and_update(session):
 
     loaded = get_view_prefs(session)
     assert loaded.view == "dashboard"
+
+
+def test_dashboard_workstream_grouping(session, workstream):
+    create_task(session, workstream_id=workstream.id, title="A", context="c")
+    result = dashboard(session, group_by="workstream")
+    assert result.group_by == "workstream"
+    assert len(result.groups) == 1
+    assert result.groups[0].key == workstream.id
+
+
+def test_dashboard_day_bucket_tomorrow(session, workstream):
+    today = date.today()
+    create_task(
+        session,
+        workstream_id=workstream.id,
+        title="Tomorrow",
+        context="c",
+        due_at=datetime.combine(today + timedelta(days=1), datetime.min.time()).replace(
+            hour=12
+        ),
+    )
+    result = dashboard(session, group_by="day")
+    tomorrow_group = next(g for g in result.groups if g.key == "tomorrow")
+    assert len(tomorrow_group.tasks) == 1
+
+
+def test_dashboard_summary_counts(session, workstream):
+    create_task(session, workstream_id=workstream.id, title="Todo", context="c")
+    create_task(
+        session,
+        workstream_id=workstream.id,
+        title="Doing",
+        context="c",
+        status=TaskStatus.doing,
+    )
+    result = dashboard(session, group_by="flat")
+    assert result.summary.total == 2
+    assert result.summary.by_status["todo"] == 1
+    assert result.summary.by_status["doing"] == 1
